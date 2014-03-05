@@ -561,13 +561,26 @@ package com.fc.air
 					img.alpha = 1;					
 				});
 			
+				var mv:MovieClip;
+				
 			Factory.registerPoolCreator(MovieClip, function():MovieClip
 				{
 					var vc:Vector.<Texture> = new Vector.<Texture>();
 					vc.push(Texture.empty(1, 1));
 					var mc:MovieClip = new MovieClip(vc, 1);
+					Starling.juggler.add(mc);
 					return mc;
-				});
+				}, function(mv:MovieClip):void
+				{
+					var fr:int = mv.numFrames;
+					for (var i:int = 0; i < fr-1; i++) 
+					{
+						mv.removeFrameAt(1);						
+					}
+					mv.stop();
+					Starling.juggler.remove(mv);
+				}
+				);
 			
 			Factory.registerPoolCreator(BaseBitmapTextField, function():BaseBitmapTextField
 				{

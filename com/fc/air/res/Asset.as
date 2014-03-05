@@ -10,6 +10,7 @@ package com.fc.air.res
 	import starling.core.Starling;
 	import starling.display.DisplayObject;
 	import starling.display.Image;
+	import starling.display.MovieClip;
 	import starling.extensions.PDParticleSystem;
 	import starling.textures.Texture;
 	
@@ -29,6 +30,8 @@ package com.fc.air.res
 		static private var LIST_FONTS:Array;
 		private static var WALL_LIST:Array;		
 		private static var URL_EXTRA_RES:String;
+		
+		public static var isResourceByScaleContent:Boolean;
 		
 		public function Asset()
 		{
@@ -60,10 +63,10 @@ package com.fc.air.res
 		{
 			var arr:Array;
 			if(!isExternal)
-				arr = [ASSET_FOLDER + name + contentSuffix + ".atf", ASSET_FOLDER + name + contentSuffix + ".xml"];
+				arr = [ASSET_FOLDER + name + (isResourceByScaleContent?contentSuffix:"") + ".atf", ASSET_FOLDER + name + (isResourceByScaleContent?contentSuffix:"") + ".xml"];
 			else
 			{
-				var file:String = name + "/" + name + contentSuffix;
+				var file:String = name + "/" + name + (isResourceByScaleContent?contentSuffix:"");
 				arr = [File.cacheDirectory.resolvePath( file + ".atf"), File.cacheDirectory.resolvePath(file + ".xml")];
 			}
 			return arr;
@@ -72,10 +75,10 @@ package com.fc.air.res
 		public static function getImage(texAtl:String,str:String):DisplayObject
 		{
 			var resMgr:ResMgr = Factory.getInstance(ResMgr);
-			var tex:Texture = resMgr.getTexture(texAtl + Asset.contentSuffix, str);
+			var tex:Texture = resMgr.getTexture(texAtl + (isResourceByScaleContent?contentSuffix:""), str);
 			if (getRec(str))
 			{				
-				var simg:Scale9Image = Factory.getObjectFromPool(Scale9Image);				
+				var simg:Scale9Image = Factory.getObjectFromPool(Scale9Image);								
 				simg.textures = new Scale9Textures(tex, getRec(str));				
 				simg.readjustSize();
 				simg.width = tex.width;
@@ -98,8 +101,6 @@ package com.fc.air.res
 			if (getRec(str))
 			{				
 				var simg:Scale9Image = Factory.getObjectFromPool(Scale9Image);				
-				//simg.useSeparateBatch = false;
-				//var simg:Scale9Image = new Scale9Image(new Scale9Textures(tex, getRec(str)));
 				simg.textures = new Scale9Textures(tex, getRec(str));				
 				simg.readjustSize();
 				simg.width = tex.width;
@@ -172,15 +173,16 @@ package com.fc.air.res
 	
 		public static function getTAName(cat:String):String
 		{
-			return cat + contentSuffix;
+			return cat + (isResourceByScaleContent?contentSuffix:"");
 		}
 		
-		public static function getExtraContent(cat:String):Array
+		public static function getExtraContent(cat:String, isWithSoundZip:Boolean = false):Array
 		{
 			var urls:Array = [];
-			urls.push(URL_EXTRA_RES + cat + "/" + cat + contentSuffix + ".atf");
-			urls.push(URL_EXTRA_RES + cat + "/" + cat + contentSuffix + ".xml");
-			urls.push(URL_EXTRA_RES + cat + "/" + cat + ".zip");
+			urls.push(URL_EXTRA_RES + cat + "/" + cat + (isResourceByScaleContent?contentSuffix:"") + ".atf");
+			urls.push(URL_EXTRA_RES + cat + "/" + cat + (isResourceByScaleContent?contentSuffix:"") + ".xml");
+			if(isWithSoundZip)
+				urls.push(URL_EXTRA_RES + cat + "/" + cat + ".zip");
 			return urls;
 		}
 		
@@ -219,7 +221,6 @@ package com.fc.air.res
 		
 		public static function getBaseBtWithImage(...imgs):BaseButton
 		{
-			//TODO: BaseButton
 			var bt:BaseButton = Factory.getObjectFromPool(BaseButton);
 			for (var i:int = 0; i < imgs.length; i++) 
 			{				
@@ -246,8 +247,7 @@ package com.fc.air.res
 			if (!particleCfgList)
 			{
 				particleCfgList = { };				
-			}			
-						
+			}						
 			particleCfgList[name] = new XML(xmlData);
 		}
 		
@@ -255,6 +255,23 @@ package com.fc.air.res
 		{
 			var particleSystem:PDParticleSystem = new PDParticleSystem( particleCfgList[name], tex);
 			return particleSystem;
+		}
+		
+		static public function getMovieClip(textures:Vector.<Texture>, fps:int = 24):MovieClip
+		{
+			var mv:MovieClip = Factory.getObjectFromPool(MovieClip);
+			mv.setFrameTexture(0, textures[0]);			
+			var fr:int = textures.length;
+			for (var i:int = 1; i < fr; i++) 
+			{
+				mv.addFrame(textures[i]);
+			}
+			mv.fps = 24;
+			mv.texture = textures[0];
+			mv.readjustSize();
+			mv.scaleX = mv.scaleY = 1;
+			Starling.juggler.add(mv);
+			return mv;
 		}
 	}
 

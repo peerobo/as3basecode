@@ -24,7 +24,7 @@ package  com.fc.air.base
 		public function BFConstructor() 
 		{	
 			listFonts = [];
-		}					
+		}				
 		
 		public static function getTextImage(width:int,height:int,text:String,font:String,color:int=0xFFFFFF,hAlign:String="center",vAlign:String="center",autoscale:Boolean=false):Sprite
 		{

@@ -197,7 +197,7 @@ package com.fc.air.res
 		 */
 		public function loadTextureAtlas(name:String, onProgress:Function, isExternal:Boolean = false):Boolean		
 		{
-			if (assetMgr.getTextureAtlas(name + Asset.contentSuffix))
+			if (assetMgr.getTextureAtlas(name + (Asset.isResourceByScaleContent ? Asset.contentSuffix : "")))
 			{
 				onProgress(1);
 				return true;
@@ -218,7 +218,7 @@ package com.fc.air.res
 		
 		public function removeTextureAtlas(name:String):void
 		{
-			assetMgr.removeTextureAtlas(name + Asset.contentSuffix,true);
+			assetMgr.removeTextureAtlas(name + (Asset.isResourceByScaleContent ? Asset.contentSuffix : ""),true);
 		}
 		
 		/**
