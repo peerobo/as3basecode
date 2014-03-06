@@ -17,6 +17,7 @@ package com.fc.air.base
 		
 		
 		public static var localizeData:Object = new Object();
+		static public var ready:Boolean = false;
 		
 		public static function init(str:String):void
 		{
@@ -30,7 +31,9 @@ package com.fc.air.base
 				{
 					localizeData[child.name()][keyXML.name()] = keyXML.text();					
 				}
-			}						
+			}	
+			
+			ready = true;
 		}
 		
 		public static function getText(key:String):String

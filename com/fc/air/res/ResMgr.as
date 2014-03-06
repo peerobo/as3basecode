@@ -100,8 +100,7 @@ package com.fc.air.res
 		}
 		
 		private function onMonitor(e:StatusEvent):void 
-		{
-			FPSCounter.log("internet available:", monitor.available);
+		{			
 			isInternetAvailable = monitor.available;
 		}
 		

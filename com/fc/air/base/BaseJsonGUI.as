@@ -20,6 +20,7 @@ package com.fc.air.base
 	{			
 		public static var guiConfig:Object;	
 		private static var loader:URLLoader;
+		static public var ready:Boolean = false;
 		protected static var mvIndex:Array;
 		protected static var btnIndex:Object;
 		
@@ -30,6 +31,7 @@ package com.fc.air.base
 		private var textFields:Object = new Object();
 		private var rects:Object = new Object();
 		private var arrs:Object = new Object();
+		private var guiBuilt:Boolean;
 		
 		public function BaseJsonGUI(guiId:String)
 		{
@@ -40,21 +42,47 @@ package com.fc.air.base
 			
 		}
 		
+		public function buildGUI():void
+		{
+			if (!guiBuilt)
+			{
+				// init new objects
+				layers = new Object();
+				buttons = new Object();
+				images = new Object();
+				textFields = new Object();
+				rects = new Object();
+				arrs = new Object();
+				
+				// load new config
+				var o:Object = guiConfig;
+				var guiCfg:Object = guiConfig["gui"][guiId];
+				readCfg(guiCfg as Array);
+				
+				guiBuilt = true;
+			}
+		}
+		
 		override public function onAdded(e:Event):void
 		{
 			super.onAdded(e);
-			// init new objects
-			layers = new Object();
-			buttons = new Object();
-			images = new Object();
-			textFields = new Object();
-			rects = new Object();
-			arrs = new Object();
-			
-			// load new config
-			var o:Object = guiConfig;
-			var guiCfg:Object = guiConfig["gui"][guiId];
-			readCfg(guiCfg as Array);			
+			if (!guiBuilt)
+			{
+				// init new objects
+				layers = new Object();
+				buttons = new Object();
+				images = new Object();
+				textFields = new Object();
+				rects = new Object();
+				arrs = new Object();
+				
+				// load new config
+				var o:Object = guiConfig;
+				var guiCfg:Object = guiConfig["gui"][guiId];
+				readCfg(guiCfg as Array);
+				
+				guiBuilt = true;
+			}
 		}
 		
 		public static function setConfigAllGUIs(str:String):void
@@ -72,6 +100,8 @@ package com.fc.air.base
 			}
 			// load mvIndex
 			mvIndex = guiConfig["mvIndex"];
+			
+			ready = true;
 		}
 		
 		// abstract function
@@ -434,12 +464,13 @@ package com.fc.air.base
 			textFields = null;
 			rects = null;
 			arrs = null;
+			guiBuilt = false;
 		}
 		
 		public static function loadCfg():void
 		{
 			var resMgr:ResMgr = Factory.getInstance(ResMgr);
-			resMgr.load(Asset.TEXT_FOLDER + Asset.BASE_GUI + "/",URLLoaderDataFormat.TEXT,setConfigAllGUIs);
+			resMgr.load(Asset.TEXT_FOLDER + Asset.BASE_GUI + ".json",URLLoaderDataFormat.TEXT,setConfigAllGUIs);
 		}
 		
 	}

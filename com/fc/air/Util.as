@@ -7,11 +7,14 @@ package com.fc.air
 	import com.fc.air.base.GlobalInput;
 	import com.fc.air.base.IAP;
 	import com.fc.air.base.LangUtil;
+	import com.fc.air.base.LayerMgr;
 	import com.fc.air.base.PopupMgr;	
 	import com.fc.air.comp.ILoading;
 	import com.fc.air.comp.IInfoDlg;
 	import com.hurlant.crypto.Crypto;
 	import com.hurlant.crypto.hash.IHash;
+	import com.hurlant.crypto.prng.ARC4;
+	import com.hurlant.crypto.prng.Random;
 	import com.hurlant.util.Hex;
 	import feathers.display.Scale9Image;
 	import feathers.textures.Scale9Textures;
@@ -65,15 +68,25 @@ package com.fc.air
 		public static var iLoading:ILoading;
 		public static var iInfoDlg:IInfoDlg;
 		
+		private static var currentAdType:int;
+		private static const AD_FULLSCREEN:int = 0;
+		private static const AD_BANNER:int = 1;
+		private static const AD_MORE_GAME:int = 2;
 		CONFIG::isAndroid {
-			private static var leadBoltBanner:LeadboltController;
-			private static var leadBoltFullscreen:LeadboltController;
+			//private static var leadBoltBanner:LeadboltController;
+			//private static var leadBoltFullscreen:LeadboltController;
+			//static private var leadBoldMoreGames:LeadboltController;
+			static private var leadBoltController:LeadboltController;
 		}
 		
 		CONFIG::isIOS {
-			private static var leadBoltBanner:LeadboltController;
-			private static var leadBoltFullscreen:LeadboltController;
+			//private static var leadBoltBanner:LeadboltController;
+			//private static var leadBoltFullscreen:LeadboltController;
+			//static private var leadBoldMoreGames:LeadboltController;
+			static private var leadBoltController:LeadboltController;			
 		}
+		
+		static private var rnd:Random;
 		
 		public static function getFilter(type:int):FragmentFilter
 		{
@@ -263,125 +276,159 @@ package com.fc.air
 			if (!Util.isFullApp)
 			{
 
-				CONFIG::isIOS{
-					leadBoltBanner = new LeadboltController(appSpecific["banner"]);
-					leadBoltBanner.registerDisplayAdEventListeners();					
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);	
-					
-					leadBoltFullscreen = new LeadboltController(appSpecific["fullscreen"]);
-					leadBoltFullscreen.registerDisplayAdEventListeners();					
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);	
-				}
-				CONFIG::isAndroid {
-					leadBoltBanner = new LeadboltController(appSpecific["banner"]);					
-					leadBoltBanner.registerDisplayAdEventListeners();					
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
-					leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);
-					
-					leadBoltFullscreen = new LeadboltController(appSpecific["fullscreen"]);
-					leadBoltFullscreen.registerDisplayAdEventListeners();					
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
-					leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);
-				}
+				//CONFIG::isIOS{
+					//leadBoltBanner = new LeadboltController(appSpecific["banner"]);
+					//leadBoltBanner.registerDisplayAdEventListeners();					
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);	
+					//
+					//leadBoltFullscreen = new LeadboltController(appSpecific["fullscreen"]);
+					//leadBoltFullscreen.registerDisplayAdEventListeners();					
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);	
+					//
+					//leadBoldMoreGames = new LeadboltController(appSpecific["moregames"]);
+					//leadBoldMoreGames.registerDisplayAdEventListeners();
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);	
+					//
+				//}
+				//CONFIG::isAndroid {
+					//leadBoltBanner = new LeadboltController(appSpecific["banner"]);					
+					//leadBoltBanner.registerDisplayAdEventListeners();					
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+					//leadBoltBanner.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);
+					//
+					//leadBoltFullscreen = new LeadboltController(appSpecific["fullscreen"]);
+					//leadBoltFullscreen.registerDisplayAdEventListeners();					
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+					//leadBoltFullscreen.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);
+					//
+					//leadBoldMoreGames = new LeadboltController(appSpecific["moregames"]);
+					//leadBoldMoreGames.registerDisplayAdEventListeners();					
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+					//leadBoldMoreGames.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);	
+				//}
 				isInitAd = true;
 			}
 		}
 		
 		CONFIG::isAndroid{
-		private static function onLeadBoltAdEvent(e:LeadboltAdEvent):void 
+			
+			private static function onLeadBoltAdEvent(e:LeadboltAdEvent):void 
 			{				
 				var target:LeadboltController = e.currentTarget as LeadboltController;
 				switch (e.type) 
 				{
 					case LeadboltAdEvent.ON_AD_FAILED:
 						FPSCounter.log("lead bolt ad failed");
-						if (target == leadBoltFullscreen)
+						if (currentAdType == AD_FULLSCREEN || currentAdType == AD_MORE_GAME)
 							hideLoading();
 					break;
 					case LeadboltAdEvent.ON_AD_CACHED:						
 						target.loadAd();
-						if(target == leadBoltBanner)
+						if(currentAdType == AD_BANNER)
 							relayoutAfterAd(true);
 					break;
 					case LeadboltAdEvent.ON_AD_LOADED:
-						if(target == leadBoltBanner)
+						if(currentAdType == AD_BANNER)
 							isBannerAdShowed = true;
-						if (target == leadBoltFullscreen)
+						if (currentAdType == AD_FULLSCREEN || currentAdType == AD_MORE_GAME)
+						{
+							LayerMgr.lockGameLayer = true;
 							hideLoading();
+						}
 					break;
 					case LeadboltAdEvent.ON_AD_CLICKED:
 						target.destroyAd();
-						target.loadAdToCache();						
+						LayerMgr.lockGameLayer = false;
+					break;
+					case LeadboltAdEvent.ON_AD_CLOSED:
+						LayerMgr.lockGameLayer = false;
 					break;
 					case LeadboltAdEvent.ON_AD_ALREADYCOMPLETED:						
-						if(target == leadBoltBanner)
+						if(currentAdType == AD_BANNER)
 						{
 							relayoutAfterAd(false);
 							isBannerAdShowed = false;
 						}
-						if (target == leadBoltFullscreen)
+						if (currentAdType == AD_FULLSCREEN || currentAdType == AD_MORE_GAME)
 							hideLoading();
 					break;
 					default:
-				}
+				}			
 			}					
 		}
 		
 		CONFIG::isIOS{
-		private static function onLeadBoltAdEvent(e:LeadboltAdEvent):void 
+			private static function onLeadBoltAdEvent(e:LeadboltAdEvent):void 
 			{				
 				var target:LeadboltController = e.currentTarget as LeadboltController;
 				switch (e.type) 
 				{
 					case LeadboltAdEvent.ON_AD_FAILED:
 						FPSCounter.log("lead bolt ad failed");
-						if (target == leadBoltFullscreen)
+						if (currentAdType == AD_FULLSCREEN || currentAdType == AD_MORE_GAME)
 							hideLoading();
 					break;
 					case LeadboltAdEvent.ON_AD_CACHED:						
 						target.loadAd();
-						if(target == leadBoltBanner)
+						if(currentAdType == AD_BANNER)
 							relayoutAfterAd(true);
 					break;
 					case LeadboltAdEvent.ON_AD_LOADED:
-						if(target == leadBoltBanner)
+						if(currentAdType == AD_BANNER)
 							isBannerAdShowed = true;
-						if (target == leadBoltFullscreen)
+						if (currentAdType == AD_FULLSCREEN || currentAdType == AD_MORE_GAME)
+						{
+							LayerMgr.lockGameLayer = true;
 							hideLoading();
+						}
 					break;
 					case LeadboltAdEvent.ON_AD_CLICKED:
 						target.destroyAd();
-						target.loadAdToCache();						
+						LayerMgr.lockGameLayer = false;
+					break;
+					case LeadboltAdEvent.ON_AD_CLOSED:
+						LayerMgr.lockGameLayer = false;
 					break;
 					case LeadboltAdEvent.ON_AD_ALREADYCOMPLETED:						
-						if(target == leadBoltBanner)
+						if(currentAdType == AD_BANNER)
 						{
 							relayoutAfterAd(false);
 							isBannerAdShowed = false;
 						}
-						if (target == leadBoltFullscreen)
+						if (currentAdType == AD_FULLSCREEN || currentAdType == AD_MORE_GAME)
 							hideLoading();
 					break;
 					default:
@@ -422,32 +469,44 @@ package com.fc.air
 			{	
 				FPSCounter.log("show banner");
 				CONFIG::isIOS{					
-					leadBoltBanner.destroyAd();
-					leadBoltBanner.loadAdToCache();					
+					//leadBoltBanner.destroyAd();
+					//leadBoltBanner.loadAdToCache();
+					if(currentAdType != AD_BANNER)
+						createLeadBoltController(appSpecific["banner"]);
+					else
+						leadBoltController.destroyAd();
+					leadBoltController.loadAdToCache();
 					Starling.juggler.delayCall(showBannerAd, 120);
+					currentAdType = AD_BANNER;
 				}
 				CONFIG::isAndroid {					
-					leadBoltBanner.destroyAd();
-					leadBoltBanner.loadAdToCache();					
+					//leadBoltBanner.destroyAd();
+					//leadBoltBanner.loadAdToCache();	
+					if(currentAdType != AD_BANNER)
+						createLeadBoltController(appSpecific["banner"]);
+					else
+						leadBoltController.destroyAd();
+					leadBoltController.loadAdToCache();
 					Starling.juggler.delayCall(showBannerAd, 120);
+					currentAdType = AD_BANNER;
 				}
 			}
 		}
 		
-		public static function hideBannerAd():void
-		{
-			if(isInitAd)
-			{
-				FPSCounter.log("hide banner");
-				CONFIG::isIOS {
-					leadBoltBanner.destroyAd();
-				}
-				CONFIG::isAndroid {
-					leadBoltBanner.destroyAd();
-				}
-				isBannerAdShowed = false;
-			}
-		}
+		//public static function hideBannerAd():void
+		//{
+			//if(isInitAd)
+			//{
+				//FPSCounter.log("hide banner");
+				//CONFIG::isIOS {
+					//leadBoltBanner.destroyAd();
+				//}
+				//CONFIG::isAndroid {
+					//leadBoltBanner.destroyAd();
+				//}
+				//isBannerAdShowed = false;
+			//}
+		//}
 		
 		public static function showFullScreenAd():void
 		{
@@ -456,15 +515,61 @@ package com.fc.air
 				if (isDesktop)
 					return;
 				CONFIG::isIOS {
-					leadBoltFullscreen.loadAdToCache();
+					//leadBoltFullscreen.loadAdToCache();
+					createLeadBoltController(appSpecific["fullscreen"]);
+					leadBoltController.loadAdToCache();
 					showLoading();
+					currentAdType = AD_FULLSCREEN;
 				}
 				CONFIG::isAndroid {
-					leadBoltFullscreen.loadAdToCache();
+					//leadBoltFullscreen.loadAdToCache();
+					createLeadBoltController(appSpecific["fullscreen"]);
+					leadBoltController.loadAdToCache();
 					showLoading();
+					currentAdType = AD_FULLSCREEN;
 				}
 			}
 		}
+		
+		public static function showMoreGames():void
+		{
+			if (isInitAd)
+			{
+				if (isDesktop)
+					return;
+				CONFIG::isIOS {
+					//leadBoldMoreGames.loadAdToCache();
+					createLeadBoltController(appSpecific["moregames"]);
+					leadBoltController.loadAdToCache();
+					showLoading();
+					currentAdType = AD_MORE_GAME;
+				}
+				CONFIG::isAndroid {
+					//leadBoldMoreGames.loadAdToCache();
+					createLeadBoltController(appSpecific["moregames"]);
+					leadBoltController.loadAdToCache();
+					showLoading();
+					currentAdType = AD_MORE_GAME;
+				}
+			}
+		}
+		
+		//public static function hideMoreGames():void
+		//{
+			//if (isInitAd)
+			//{
+				//if (isDesktop)
+					//return;
+				//CONFIG::isIOS {
+					//leadBoldMoreGames.destroyAd();
+					//hideLoading();
+				//}
+				//CONFIG::isAndroid {
+					//leadBoldMoreGames.destroyAd();
+					//hideLoading();
+				//}
+			//}
+		//}
 		
 		public static function hideLoading():void
 		{
@@ -478,6 +583,87 @@ package com.fc.air
 			//TODO: show ad loading
 			if(iLoading)
 				iLoading.show();
+		}
+		
+		private static function createLeadBoltController(id:String):void
+		{
+			CONFIG::isIOS {
+				if (leadBoltController)
+				{
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);
+					leadBoltController.destroyAd();
+				}
+				leadBoltController = new LeadboltController(id);
+				leadBoltController.registerDisplayAdEventListeners();					
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);
+			}
+			
+			CONFIG::isAndroid {
+				if (leadBoltController)
+				{
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);
+					leadBoltController.destroyAd();
+				}
+				leadBoltController = new LeadboltController(id);
+				leadBoltController.registerDisplayAdEventListeners();					
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+				leadBoltController.addEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);
+			}
+		}
+		
+		public static function hideAd():void
+		{
+			CONFIG::isAndroid {
+				if (leadBoltController)
+				{
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);
+					leadBoltController.destroyAd();
+				}
+				hideLoading();
+			}
+			CONFIG::isIOS {
+				if (leadBoltController)
+				{
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_LOADED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CLICKED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CLOSED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_COMPLETED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_FAILED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_ALREADYCOMPLETED, onLeadBoltAdEvent);
+					leadBoltController.removeEventListener(LeadboltAdEvent.ON_AD_CACHED, onLeadBoltAdEvent);
+					leadBoltController.destroyAd();
+				}
+				hideLoading();
+			}
 		}
 		
 		public static function showInfoDlg(msg:String, callback:CallbackObj):void
@@ -578,6 +764,7 @@ package com.fc.air
 						mv.removeFrameAt(1);						
 					}
 					mv.stop();
+					mv.filter = null;
 					Starling.juggler.remove(mv);
 				}
 				);
@@ -641,7 +828,7 @@ package com.fc.air
 		
 		static public function get isAndroid():Boolean
 		{
-			CONFIG::isIOS {
+			CONFIG::isAndroid {
 				return AirDeviceId.getInstance().isOnAndroid;
 			}
 			return false;
@@ -707,6 +894,16 @@ package com.fc.air
 				var social:SocialForAndroid = Factory.getInstance(SocialForAndroid);
 				social.registerIDs(appSpecific);
 			}
+		}
+		
+		static public function getRandom(maxValue:int=256):int
+		{
+			if(!rnd)
+			{
+				rnd = new Random(ARC4);			
+				rnd.autoSeed();
+			}
+			return int(rnd.nextByte() / 256 * maxValue);
 		}
 	}
 

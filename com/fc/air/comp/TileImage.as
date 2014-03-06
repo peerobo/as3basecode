@@ -13,21 +13,23 @@ package com.fc.air.comp
 	 */
 	public class TileImage extends QuadBatch 
 	{
+		public var scale:Number;
 		
 		public function TileImage() 
 		{
-			super();				
-		}
+			super();
+			scale = 1;
+		}					
 		
 		public function draw(tex:Texture, w:int, h:int):void
 		{
 			reset();
 			var tW:int = tex.width;
 			var tH:int = tex.height;
-			var fillX:int = w / tW;
-			var fillY:int = h / tH;
-			var oW:int = w % tW;
-			var oH:int = h % tH;
+			var fillX:int = w / (tW*scale);
+			var fillY:int = h / (tH*scale);
+			var oW:int = w % (tW*scale);
+			var oH:int = h % (tH*scale);
 			var crop:Boolean = oW != 0 || oH != 0;
 			var oXTex:Texture = Texture.fromTexture(tex, new Rectangle(0, 0, oW, tH));
 			var oYTex:Texture = Texture.fromTexture(tex, new Rectangle(0, 0, tW, oH));
@@ -37,18 +39,20 @@ package com.fc.air.comp
 			var oXYImg:Image = new Image(oXYTex);			
 			var img:Image = new Image(tex);					
 			img.smoothing = TextureSmoothing.NONE;
+			img.scaleX = img.scaleY = scale;
 			oXYImg.smoothing = TextureSmoothing.NONE;
+			oXYImg.scaleX = oXYImg.scaleY = scale;
 			oYImg.smoothing = TextureSmoothing.NONE;
+			oYImg.scaleX = oYImg.scaleY = scale;
 			oXImg.smoothing = TextureSmoothing.NONE;
+			oXImg.scaleX = oXImg.scaleY = scale;
 			for (var i:int = 0; i < fillX; i++) 
 			{
 				for (var j:int = 0; j < fillY; j++) 
 				{
-					img.x = tW * i;
-					img.y = tH * j;
+					img.x = tW*scale * i;
+					img.y = tH*scale * j;
 					this.addImage(img);						
-					//img = new Image(tex);
-					//addChild(img);
 				}
 			}
 			if (crop)
@@ -57,30 +61,25 @@ package com.fc.air.comp
 				{
 					for (i = 0; i <  fillX; i++) 
 					{
-						oYImg.x = tW * i;
-						oYImg.y = tH * fillY;
-						this.addImage(oYImg);
-						//addChild(oYImg);
-						//oYImg = new Image(oYTex);
+						oYImg.x = tW*scale * i;
+						oYImg.y = tH*scale * fillY;
+						this.addImage(oYImg);						
 					}
 				}
 				if(oW!=0)
 				{
 					for (i = 0; i <  fillY; i++) 
 					{
-						oXImg.x = tW * fillX;
-						oXImg.y = tH * i;
-						this.addImage(oXImg);
-						//this.addChild(oXImg);
-						//oXImg = new Image(oXTex);
+						oXImg.x = tW*scale * fillX;
+						oXImg.y = tH*scale * i;
+						this.addImage(oXImg);						
 					}
 				}
 				if (oW != 0 && oH != 0)
 				{
-					oXYImg.x = tW * fillX;
-					oXYImg.y = tH * fillY;
-					this.addImage(oXYImg);
-					//this.addChild(oXYImg);
+					oXYImg.x = tW*scale * fillX;
+					oXYImg.y = tH*scale * fillY;
+					this.addImage(oXYImg);					
 				}
 			}
 		}

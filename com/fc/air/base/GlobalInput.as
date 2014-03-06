@@ -34,8 +34,7 @@ package com.fc.air.base
 		{
 			disableTimeout = -1;
 			keyMap = { };
-			Starling.juggler.add(this);
-			FPSCounter.log("add keyboard event");
+			Starling.juggler.add(this);			
 			Starling.current.nativeStage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown,false, 1000);
 		}
 		
@@ -50,15 +49,13 @@ package com.fc.air.base
 		}
 		
 		private function onKeyDown(e:KeyboardEvent):void 
-		{
-			FPSCounter.log("event keyboard capture");
+		{			
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			for (var key:String in keyMap) 
 			{
 				if (key == e.keyCode.toString())
-				{
-					FPSCounter.log("execute keyboard function");
+				{		
 					var f:Function = keyMap[key];
 					f.apply(this);
 					break;

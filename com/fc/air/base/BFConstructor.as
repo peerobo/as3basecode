@@ -95,7 +95,7 @@ package  com.fc.air.base
 			var len:int = ins.listFonts.length;
 			for (var i:int = 0; i < len; i++) 
 			{
-				if (ins.nativeSize[ins.listFonts[i]] > fontSize)
+				if (ins.nativeSize[ins.listFonts[i]] >= fontSize)
 					return ins.listFonts[i];					
 			}
 			return "";

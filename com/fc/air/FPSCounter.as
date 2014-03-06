@@ -17,20 +17,20 @@ package com.fc.air
 		private static var self:FPSCounter;
 		private var log:String;
 		
-		public function FPSCounter(xPos:int = 0, yPos:int = 0, color:uint = 0xffffff, fillBackground:Boolean = false, backgroundColor:uint = 0x000000)
+		public function FPSCounter(xPos:int = 0, yPos:int = 0, color:uint = 0xffffff, fillBackground:Boolean = false, backgroundColor:uint = 0x000000, w:int= 300, h:int = 300)
 		{
 			x = xPos;
 			y = yPos;
 			tf = new TextField();			
-			tf.defaultTextFormat = new TextFormat("Arial", 40, color, true );
+			tf.defaultTextFormat = new TextFormat("Arial", 18, color, true );
 			tf.text = "----- fps";			
 			tf.multiline = true;
 			tf.selectable = false;
 			tf.wordWrap = true;
-			//tf.background = fillBackground;
-			//tf.backgroundColor = backgroundColor;
-			tf.width = Util.deviceWidth;
-			tf.height = Util.deviceHeight;
+			tf.background = fillBackground;
+			tf.backgroundColor = backgroundColor;
+			tf.width = w;
+			tf.height = h;
 			tf.mouseEnabled = false;			
 			addChild(tf);			
 			addEventListener(Event.ENTER_FRAME, tick);
