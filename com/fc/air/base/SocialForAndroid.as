@@ -168,7 +168,9 @@ package com.fc.air.base
 			
 			webView = new StageWebView();
 			webView.stage = Starling.current.nativeStage;
-			var rec:Rectangle = new Rectangle(0, 0, Util.deviceWidth - Util.deviceWidth / 3, Util.deviceHeight - Util.deviceHeight / 3);
+			var rec:Rectangle = Factory.getObjectFromPool(Rectangle);			
+			rec.width = Util.deviceWidth - Util.deviceWidth / 3;
+			rec.height = Util.deviceHeight - Util.deviceHeight / 3;			
 			rec.x = Util.deviceWidth - rec.width >> 1;
 			rec.y = 60 * Starling.contentScaleFactor;
 			webView.viewPort = rec;
@@ -303,8 +305,13 @@ package com.fc.air.base
 		private function postFBPhoto(msg:String, image:BitmapData):void
 		{
 			var bArr:ByteArray = new ByteArray();
-			image.encode(new Rectangle(0, 0, image.width, image.height), new JPEGEncoderOptions(80), bArr);
-			
+			var rec:Rectangle = Factory.getObjectFromPool(Rectangle);
+			rec.x = 0;
+			rec.y = 0;
+			rec.width = image.width;
+			rec.height = image.height;
+			image.encode(rec, new JPEGEncoderOptions(80), bArr);
+			Factory.toPool(rec);
 			var p:Object = {source: bArr, message: msg, fileName: "highscore.jpg"};
 			FacebookMobile.api("/" + fbUserID + "/photos", onPostFBComplete, p, URLRequestMethod.POST);
 			image = null;
@@ -334,7 +341,13 @@ package com.fc.air.base
 		private function postTwitterPhoto(msg:String, image:BitmapData):void
 		{
 			var bArr:ByteArray = new ByteArray();
-			image.encode(new Rectangle(0, 0, image.width, image.height), new JPEGEncoderOptions(80), bArr);
+			var rec:Rectangle = Factory.getObjectFromPool(Rectangle);
+			rec.x = 0;
+			rec.y = 0;
+			rec.width = image.width;
+			rec.height = image.height;
+			image.encode(rec, new JPEGEncoderOptions(80), bArr);
+			Factory.toPool(rec);
 			var twitterRequest:TwitterRequest = twitter.statuses_updateWithMedia(msg, bArr);
 			twitterRequest.addEventListener(TwitterRequestEvent.COMPLETE, onTwitterPostComplete);
 			twitterRequest.addEventListener(TwitterErrorEvent.CLIENT_ERROR, onTwitterPostFail);

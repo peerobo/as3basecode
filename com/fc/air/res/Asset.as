@@ -24,12 +24,13 @@ package com.fc.air.res
 		public static const TEXT_FOLDER:String = "asset/texts/";
 		public static const FOLDER:String = "asset/sounds/";
 		public static const BASE_GUI:String = "gui";								
-		public static var contentSuffix:String;
-		
+		public static var contentSuffix:String;		
 		static private var scaleRecs:Object;
 		static private var LIST_FONTS:Array;
 		private static var WALL_LIST:Array;		
 		private static var URL_EXTRA_RES:String;
+		static private var defaultButton:String;
+		private static var particleCfgList:Object;	
 		
 		public static var isResourceByScaleContent:Boolean;
 		
@@ -82,7 +83,7 @@ package com.fc.air.res
 				simg.textures = new Scale9Textures(tex, getRec(str));				
 				simg.readjustSize();
 				simg.width = tex.width;
-				simg.height = tex.height;
+				simg.height = tex.height;				
 				return simg;
 			}
 			else
@@ -100,11 +101,11 @@ package com.fc.air.res
 			var tex:Texture = resMgr.getTexture(Asset.BASE_GUI + Asset.contentSuffix, str);
 			if (getRec(str))
 			{				
-				var simg:Scale9Image = Factory.getObjectFromPool(Scale9Image);				
-				simg.textures = new Scale9Textures(tex, getRec(str));				
+				var simg:Scale9Image = new Scale9Image(new Scale9Textures(tex, getRec(str)));				
+				//simg.textures = ;				
 				simg.readjustSize();
 				simg.width = tex.width;
-				simg.height = tex.height;
+				simg.height = tex.height;				
 				return simg;
 			}
 			else
@@ -227,10 +228,7 @@ package com.fc.air.res
 				bt.addIcon(imgs[i]);
 			}			
 			return bt;
-		}
-		
-		static private var defaultButton:String;
-		private static var particleCfgList:Object;	
+		}		
 		
 		static public function loadParticleCfg(list:Array):void 
 		{
@@ -257,16 +255,30 @@ package com.fc.air.res
 			return particleSystem;
 		}
 		
-		static public function getMovieClip(textures:Vector.<Texture>, fps:int = 24):MovieClip
+		static public function getMovieClip(textures:Vector.<Texture>, fps:int = 24, mv:MovieClip = null):MovieClip
 		{
-			var mv:MovieClip = Factory.getObjectFromPool(MovieClip);
+			if(!mv)
+			{
+				mv = Factory.getObjectFromPool(MovieClip);
+			}
+			else	// reset
+			{
+				var fr:int = mv.numFrames;
+				for (var i:int = 0; i < fr-1; i++) 
+				{
+					mv.removeFrameAt(1);						
+				}
+				mv.stop();
+				mv.filter = null;
+				Starling.juggler.remove(mv);
+			}									
 			mv.setFrameTexture(0, textures[0]);			
-			var fr:int = textures.length;
-			for (var i:int = 1; i < fr; i++) 
+			fr = textures.length;
+			for (i = 1; i < fr; i++) 
 			{
 				mv.addFrame(textures[i]);
 			}
-			mv.fps = 24;
+			mv.fps = fps;
 			mv.texture = textures[0];
 			mv.readjustSize();
 			mv.scaleX = mv.scaleY = 1;

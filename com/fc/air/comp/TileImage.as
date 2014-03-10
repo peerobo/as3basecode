@@ -1,5 +1,6 @@
 package com.fc.air.comp 
 {
+	import com.fc.air.base.Factory;
 	import flash.geom.Rectangle;
 	import starling.display.Image;
 	import starling.display.QuadBatch;
@@ -23,6 +24,9 @@ package com.fc.air.comp
 		
 		public function draw(tex:Texture, w:int, h:int):void
 		{
+			var oXYImg:Image;
+			var oYImg:Image;
+			var oXImg:Image;
 			reset();
 			var tW:int = tex.width;
 			var tH:int = tex.height;
@@ -30,22 +34,44 @@ package com.fc.air.comp
 			var fillY:int = h / (tH*scale);
 			var oW:int = w % (tW*scale);
 			var oH:int = h % (tH*scale);
-			var crop:Boolean = oW != 0 || oH != 0;
-			var oXTex:Texture = Texture.fromTexture(tex, new Rectangle(0, 0, oW, tH));
-			var oYTex:Texture = Texture.fromTexture(tex, new Rectangle(0, 0, tW, oH));
-			var oXYTex:Texture = Texture.fromTexture(tex, new Rectangle(0, 0, oW, oH));
-			var oXImg:Image = new Image(oXTex);
-			var oYImg:Image = new Image(oYTex);
-			var oXYImg:Image = new Image(oXYTex);			
+			var crop:Boolean = oW != 0 || oH != 0;			
+			var rec:Rectangle = Factory.getObjectFromPool(Rectangle);
+			rec.x = 0;
+			rec.y = 0;
+			rec.width = oW;
+			rec.height = tH;
+			var oXTex:Texture = Texture.fromTexture(tex, rec);
+			rec.width = tW;
+			rec.height = oH;
+			var oYTex:Texture = Texture.fromTexture(tex, rec);
+			rec.width = oW;
+			rec.height = oH;
+			var oXYTex:Texture = Texture.fromTexture(tex, rec);			
+			Factory.toPool(rec);
+			if(oW)
+				oXImg = new Image(oXTex);
+			if(oH)
+				oYImg = new Image(oYTex);
+			if(oW && oH)
+				oXYImg = new Image(oXYTex);			
 			var img:Image = new Image(tex);					
 			img.smoothing = TextureSmoothing.NONE;
 			img.scaleX = img.scaleY = scale;
-			oXYImg.smoothing = TextureSmoothing.NONE;
-			oXYImg.scaleX = oXYImg.scaleY = scale;
-			oYImg.smoothing = TextureSmoothing.NONE;
-			oYImg.scaleX = oYImg.scaleY = scale;
-			oXImg.smoothing = TextureSmoothing.NONE;
-			oXImg.scaleX = oXImg.scaleY = scale;
+			if (oXYImg)
+			{
+				oXYImg.smoothing = TextureSmoothing.NONE;
+				oXYImg.scaleX = oXYImg.scaleY = scale;
+			}
+			if (oYImg)
+			{
+				oYImg.smoothing = TextureSmoothing.NONE;
+				oYImg.scaleX = oYImg.scaleY = scale;
+			}
+			if (oXImg)
+			{
+				oXImg.smoothing = TextureSmoothing.NONE;
+				oXImg.scaleX = oXImg.scaleY = scale;
+			}
 			for (var i:int = 0; i < fillX; i++) 
 			{
 				for (var j:int = 0; j < fillY; j++) 

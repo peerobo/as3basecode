@@ -23,7 +23,7 @@ package com.fc.air.base
 			if (currScr)
 				currScr.removeFromParent();
 			PopupMgr.flush();
-			LayerMgr.getLayer(LayerMgr.LAYER_GAME).addChild(scr);			
+			LayerMgr.getLayer(LayerMgr.LAYER_GAME).addChildAt(scr,0);
 			currScr = scr;						
 		}
 		

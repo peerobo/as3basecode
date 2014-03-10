@@ -37,6 +37,7 @@ package com.fc.air
 	import starling.filters.ColorMatrixFilter;
 	import starling.filters.FragmentFilter;
 	import starling.textures.Texture;
+	import starling.textures.TextureSmoothing;
 	CONFIG::isAndroid {
 		import com.freshplanet.ane.AirDeviceId;
 		import com.leadbolt.aslib.LeadboltController;
@@ -744,7 +745,8 @@ package com.fc.air
 					img.filter = null;
 					img.pivotY = img.pivotX = 0;
 					img.rotation = 0;
-					img.alpha = 1;					
+					img.alpha = 1;			
+					img.smoothing = TextureSmoothing.TRILINEAR;
 				});
 			
 				var mv:MovieClip;

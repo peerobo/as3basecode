@@ -3,7 +3,9 @@ package com.fc.air.base
 	import com.fc.air.base.font.BaseBitmapTextField;
 	import com.fc.air.comp.LoopableSprite;
 	import com.fc.air.comp.ShakeObject;
+	import com.fc.air.FPSCounter;
 	import com.fc.air.Util;
+	import feathers.display.Scale9Image;
 	import flash.geom.Point;
 	import starling.display.DisplayObject;
 	import starling.display.Sprite;
@@ -51,7 +53,7 @@ package com.fc.air.base
 		}
 		
 		public function destroy():void
-		{
+		{			
 			callbackFunc = null;
 			params = null;	
 			cMF = null;
@@ -138,9 +140,9 @@ package com.fc.air.base
 		}
 		
 		public function addIcon(icon:DisplayObject):void
-		{
+		{			
 			icons.push(icon);
-			this.addChild(icon);
+			this.addChild(icon);				
 		}
 		
 		public function get isDisable():Boolean
