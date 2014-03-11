@@ -26,7 +26,7 @@ package com.fc.air.base
 		private var disableTimeout:Number;
 		private var swipeCallbacks:Array;	// callback object		
 		private var keyMap:Object;
-		
+		public var currDownKey:int;
 		public static const SWIPE_AMP:int = 136;
 		public var root:Sprite;
 		
@@ -36,6 +36,23 @@ package com.fc.air.base
 			keyMap = { };
 			Starling.juggler.add(this);			
 			Starling.current.nativeStage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown,false, 1000);
+			Starling.current.nativeStage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp,false, 1000);
+		}
+		
+		private function onKeyUp(e:KeyboardEvent):void 
+		{
+			currDownKey = -1;
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			for (var key:String in keyMap) 
+			{
+				if (key == e.keyCode.toString())
+				{		
+					var f:Function = keyMap[key];
+					f.apply(this);
+					break;
+				}
+			}
 		}
 		
 		public function registerKey(keyCode:uint, f:Function):void
@@ -49,7 +66,8 @@ package com.fc.air.base
 		}
 		
 		private function onKeyDown(e:KeyboardEvent):void 
-		{			
+		{	
+			currDownKey = e.keyCode;
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			for (var key:String in keyMap) 

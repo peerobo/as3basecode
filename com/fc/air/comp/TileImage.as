@@ -1,4 +1,4 @@
-package com.fc.air.comp 
+package com.fc.air.comp
 {
 	import com.fc.air.base.Factory;
 	import flash.geom.Rectangle;
@@ -12,15 +12,15 @@ package com.fc.air.comp
 	 * ...
 	 * @author ndp
 	 */
-	public class TileImage extends QuadBatch 
+	public class TileImage extends QuadBatch
 	{
 		public var scale:Number;
 		
-		public function TileImage() 
+		public function TileImage()
 		{
 			super();
 			scale = 1;
-		}					
+		}
 		
 		public function draw(tex:Texture, w:int, h:int):void
 		{
@@ -30,11 +30,11 @@ package com.fc.air.comp
 			reset();
 			var tW:int = tex.width;
 			var tH:int = tex.height;
-			var fillX:int = w / (tW*scale);
-			var fillY:int = h / (tH*scale);
-			var oW:int = w % (tW*scale);
-			var oH:int = h % (tH*scale);
-			var crop:Boolean = oW != 0 || oH != 0;			
+			var fillX:int = w / (tW * scale);
+			var fillY:int = h / (tH * scale);
+			var oW:int = w % (tW * scale);
+			var oH:int = h % (tH * scale);
+			var crop:Boolean = oW != 0 || oH != 0;
 			var rec:Rectangle = Factory.getObjectFromPool(Rectangle);
 			rec.x = 0;
 			rec.y = 0;
@@ -46,15 +46,29 @@ package com.fc.air.comp
 			var oYTex:Texture = Texture.fromTexture(tex, rec);
 			rec.width = oW;
 			rec.height = oH;
-			var oXYTex:Texture = Texture.fromTexture(tex, rec);			
-			Factory.toPool(rec);
-			if(oW)
-				oXImg = new Image(oXTex);
-			if(oH)
-				oYImg = new Image(oYTex);
-			if(oW && oH)
-				oXYImg = new Image(oXYTex);			
-			var img:Image = new Image(tex);					
+			var oXYTex:Texture = Texture.fromTexture(tex, rec);
+			Factory.toPool(rec);			
+			if (oW)
+			{
+				oXImg = Factory.getObjectFromPool(Image);
+				oXImg.texture = oXTex;
+				oXImg.readjustSize();
+			}			
+			if (oH)
+			{
+				oYImg = Factory.getObjectFromPool(Image);
+				oYImg.texture = oYTex;
+				oYImg.readjustSize();
+			}			
+			if (oW && oH)
+			{
+				oXYImg = Factory.getObjectFromPool(Image);
+				oXYImg.texture = oXYTex;
+				oXYImg.readjustSize();
+			}			
+			var img:Image = Factory.getObjectFromPool(Image);
+			img.texture = tex;
+			img.readjustSize();
 			img.smoothing = TextureSmoothing.NONE;
 			img.scaleX = img.scaleY = scale;
 			if (oXYImg)
@@ -72,44 +86,49 @@ package com.fc.air.comp
 				oXImg.smoothing = TextureSmoothing.NONE;
 				oXImg.scaleX = oXImg.scaleY = scale;
 			}
-			for (var i:int = 0; i < fillX; i++) 
+			for (var i:int = 0; i < fillX; i++)
 			{
-				for (var j:int = 0; j < fillY; j++) 
+				for (var j:int = 0; j < fillY; j++)
 				{
-					img.x = tW*scale * i;
-					img.y = tH*scale * j;
-					this.addImage(img);						
+					img.x = tW * scale * i;
+					img.y = tH * scale * j;
+					this.addImage(img);
 				}
 			}
 			if (crop)
 			{
-				if(oH!=0)
+				if (oH != 0)
 				{
-					for (i = 0; i <  fillX; i++) 
+					for (i = 0; i < fillX; i++)
 					{
-						oYImg.x = tW*scale * i;
-						oYImg.y = tH*scale * fillY;
-						this.addImage(oYImg);						
+						oYImg.x = tW * scale * i;
+						oYImg.y = tH * scale * fillY;
+						this.addImage(oYImg);
 					}
 				}
-				if(oW!=0)
+				if (oW != 0)
 				{
-					for (i = 0; i <  fillY; i++) 
+					for (i = 0; i < fillY; i++)
 					{
-						oXImg.x = tW*scale * fillX;
-						oXImg.y = tH*scale * i;
-						this.addImage(oXImg);						
+						oXImg.x = tW * scale * fillX;
+						oXImg.y = tH * scale * i;
+						this.addImage(oXImg);
 					}
 				}
 				if (oW != 0 && oH != 0)
 				{
-					oXYImg.x = tW*scale * fillX;
-					oXYImg.y = tH*scale * fillY;
-					this.addImage(oXYImg);					
+					oXYImg.x = tW * scale * fillX;
+					oXYImg.y = tH * scale * fillY;
+					this.addImage(oXYImg);
 				}
 			}
+			
+			Factory.toPool(oXYImg);
+			Factory.toPool(oYImg);
+			Factory.toPool(oXImg);
+			Factory.toPool(img);			
 		}
-		
+	
 	}
 
 }

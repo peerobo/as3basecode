@@ -898,14 +898,14 @@ package com.fc.air
 			}
 		}
 		
-		static public function getRandom(maxValue:int=256):int
+		static public function getRandom(maxValue:int=256):Number
 		{
 			if(!rnd)
 			{
 				rnd = new Random(ARC4);			
 				rnd.autoSeed();
 			}
-			return int(rnd.nextByte() / 256 * maxValue);
+			return Number(rnd.nextByte() / 256 * maxValue);
 		}
 	}
 
