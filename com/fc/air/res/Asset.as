@@ -285,6 +285,34 @@ package com.fc.air.res
 			Starling.juggler.add(mv);
 			return mv;
 		}
+		
+		static public function cloneMV(source:MovieClip, dest:MovieClip):void
+		{
+			var len:int = source.numFrames;
+			
+			for (var j:int = 0; j < len; j++) 
+			{
+				if(dest.numFrames > j)
+					dest.setFrameTexture(j, source.getFrameTexture(j));
+				else
+					dest.addFrame( source.getFrameTexture(j));
+			}
+			if (len < dest.numFrames)
+			{
+				var remain:int = dest.numFrames - len;
+				for (var k:int = 0; k < remain; k++) 
+				{
+					dest.removeFrameAt(len)
+				}
+			}	
+			dest.texture = dest.getFrameTexture(0);
+			dest.readjustSize();
+			dest.smoothing = source.smoothing;
+			dest.fps = source.fps;
+			dest.width = source.width;
+			dest.height = source.height;
+			
+		}
 	}
 
 }

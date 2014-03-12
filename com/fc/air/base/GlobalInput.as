@@ -41,7 +41,8 @@ package com.fc.air.base
 		
 		private function onKeyUp(e:KeyboardEvent):void 
 		{
-			currDownKey = -1;
+			if(e.keyCode == currDownKey)
+				currDownKey = -1;
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			for (var key:String in keyMap) 
