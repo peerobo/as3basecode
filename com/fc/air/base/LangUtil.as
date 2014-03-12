@@ -41,7 +41,8 @@ package com.fc.air.base
 			if (localizeData[localize].hasOwnProperty(key))
 			{
 				return localizeData[localize][key];
-			}else
+			}
+			else
 			{
 				return key;
 			}

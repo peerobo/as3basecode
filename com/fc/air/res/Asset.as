@@ -22,7 +22,7 @@ package com.fc.air.res
 	{
 		public static const ASSET_FOLDER:String = "asset/textures/";
 		public static const TEXT_FOLDER:String = "asset/texts/";
-		public static const FOLDER:String = "asset/sounds/";
+		public static const SOUND_FOLDER:String = "asset/sounds/";
 		public static const BASE_GUI:String = "gui";								
 		public static var contentSuffix:String;		
 		static private var scaleRecs:Object;
