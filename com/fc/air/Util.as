@@ -735,6 +735,7 @@ package com.fc.air
 			Factory.registerPoolCreator(Image, function():Image
 				{
 					var img:Image = new Image(Texture.empty(1, 1));
+					img.smoothing = TextureSmoothing.TRILINEAR;
 					return img;
 				}, function(img:Image):void
 				{
@@ -745,11 +746,9 @@ package com.fc.air
 					img.filter = null;
 					img.pivotY = img.pivotX = 0;
 					img.rotation = 0;
-					img.alpha = 1;			
+					img.alpha = 1;						
 					img.smoothing = TextureSmoothing.TRILINEAR;
-				});
-			
-				var mv:MovieClip;
+				});						
 				
 			Factory.registerPoolCreator(MovieClip, function():MovieClip
 				{
@@ -765,6 +764,15 @@ package com.fc.air
 					{
 						mv.removeFrameAt(1);						
 					}
+					mv.x = mv.y = 0;
+					mv.scaleX = mv.scaleY = 1;
+					mv.touchable = true;
+					mv.visible = true;
+					mv.filter = null;
+					mv.pivotY = mv.pivotX = 0;
+					mv.rotation = 0;
+					mv.alpha = 1;						
+					mv.smoothing = TextureSmoothing.TRILINEAR;
 					mv.stop();
 					mv.filter = null;
 					Starling.juggler.remove(mv);

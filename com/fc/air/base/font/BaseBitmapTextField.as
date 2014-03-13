@@ -29,13 +29,16 @@ package com.fc.air.base.font
 			colors = null;
 			colorRanges = null;
 			autoSize = TextFieldAutoSize.NONE;
+			alpha = 1;
 			autoScale = false;
 			text = "";
 			x = y = 0;
 			scaleX = scaleY = 1;
 			visible = true;
 			touchable = true;
-			filter = null;			
+			filter = null;
+			rotation = 0;
+			pivotX = pivotY = 0;			
 		}
 		
 		public function removeLines(num:int):void
@@ -102,14 +105,7 @@ package com.fc.air.base.font
 			colors.push(color);
 			colorRanges.push(_originTxt.length);
 			text = _originTxt;
-		}
-		
-		public function clear():void
-		{
-			colors = [];
-			colorRanges = [];
-			text = "";
-		}
+		}	
 		
 		public function get numLines():int
 		{

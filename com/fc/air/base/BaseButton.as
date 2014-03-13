@@ -1,15 +1,11 @@
 package com.fc.air.base
 {
 	import com.fc.air.base.font.BaseBitmapTextField;
-	import com.fc.air.comp.LoopableSprite;
 	import com.fc.air.comp.ShakeObject;
-	import com.fc.air.FPSCounter;
 	import com.fc.air.Util;
-	import feathers.display.Scale9Image;
 	import flash.geom.Point;
 	import starling.display.DisplayObject;
 	import starling.display.Sprite;
-	import starling.events.Event;
 	import starling.events.Touch;
 	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
@@ -57,7 +53,8 @@ package com.fc.air.base
 			callbackFunc = null;
 			params = null;	
 			cMF = null;
-			
+			icons.splice(0, icons.length);
+			label = null;
 			x = y = 0;
 			scaleX = scaleY = 1;
 			touchable = true;

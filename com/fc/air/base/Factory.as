@@ -45,8 +45,8 @@ package com.fc.air.base
 			instances = pool[key];
 			if (instances.length > 0)
 			{
-				obj = instances[0];
-				instances.splice(0, 1);				
+				obj = instances[instances.length-1];
+				instances.splice(instances.length - 1, 1);				
 			}
 			else
 			{
