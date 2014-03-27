@@ -64,7 +64,7 @@ package com.fc.air
 		
 		public static function log(...args):void
 		{
-			if(self.parent)
+			if(self && self.parent)
 			{
 				self.log += "\n" + args.join(" ");				
 			}

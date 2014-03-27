@@ -814,8 +814,7 @@ package com.fc.air
 					img.filter = null;
 					img.pivotY = img.pivotX = 0;
 					img.rotation = 0;
-					img.alpha = 1;					
-					img.unflatten();
+					img.alpha = 1;										
 				});
 			Factory.registerPoolCreator(BaseButton, function():BaseButton
 				{

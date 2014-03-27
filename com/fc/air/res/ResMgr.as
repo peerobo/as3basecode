@@ -43,6 +43,7 @@ package com.fc.air.res
 		private var extraCurrentIdx:int;
 		private var extraURLLoader:URLLoader;
 		private var extraURLRequest:URLRequest;
+		public var baseAssetDone:Boolean;
 		public var extraCurrentByte:uint;
 		public var extraCurrentByte2Load:uint;	
 		public var extraCurrentProgressStr:String;
@@ -52,6 +53,7 @@ package com.fc.air.res
 		{
 			assetMgr = new AssetManager(Starling.contentScaleFactor);			
 			assetMgr.verbose = false;
+			baseAssetDone = false;
 			
 			monitor = new URLMonitor(new URLRequest("http://www.google.com"));		
 			monitor.addEventListener(StatusEvent.STATUS, onMonitor);
@@ -169,7 +171,9 @@ package com.fc.air.res
 		
 		private function onAssetProgress(progress:Number):void 
 		{
-			assetProgress = progress;			
+			assetProgress = progress;	
+			if (progress == 1)			
+				baseAssetDone = true;
 		}
 		
 		public function getTexture(texAtl:String,tex:String):Texture
