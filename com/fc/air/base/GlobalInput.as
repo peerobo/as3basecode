@@ -9,6 +9,9 @@ package com.fc.air.base
 	import starling.events.Touch;
 	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
+	CONFIG::isAndroid {
+		import com.fc.FCAndroidUtility;
+	}
 	/**
 	 * ...
 	 * @author ndp
@@ -37,6 +40,18 @@ package com.fc.air.base
 			Starling.juggler.add(this);			
 			Starling.current.nativeStage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown,false, 1000);
 			Starling.current.nativeStage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp,false, 1000);
+		}
+		
+		CONFIG::isAndroid 
+		{
+			public function handleBackKey(onBackKey:Function = null):void
+			{
+				if(onBackKey is Function)
+					FCAndroidUtility.instance.isHandleBackKey = true;
+				else
+					FCAndroidUtility.instance.isHandleBackKey = false;
+				FCAndroidUtility.instance.onBackKeyHandle = onBackKey;				
+			}
 		}
 		
 		private function onKeyUp(e:KeyboardEvent):void 

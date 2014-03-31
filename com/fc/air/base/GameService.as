@@ -134,8 +134,7 @@ package com.fc.air.base
 				{					
 					googlePlay.reportScore(type, value);
 				}
-			}
-			saveHighscore();
+			}			
 		}
 		
 		public function saveHighscore():void

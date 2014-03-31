@@ -8,9 +8,8 @@ package com.fc.air
 	import com.fc.air.base.IAP;
 	import com.fc.air.base.LangUtil;
 	import com.fc.air.base.LayerMgr;
-	import com.fc.air.base.PopupMgr;	
-	import com.fc.air.comp.ILoading;
 	import com.fc.air.comp.IInfoDlg;
+	import com.fc.air.comp.ILoading;
 	import com.hurlant.crypto.Crypto;
 	import com.hurlant.crypto.hash.IHash;
 	import com.hurlant.crypto.prng.ARC4;
@@ -23,12 +22,15 @@ package com.fc.air
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.events.TimerEvent;
 	import flash.geom.Rectangle;
 	import flash.net.navigateToURL;
 	import flash.net.SharedObject;
 	import flash.net.URLRequest;
 	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
+	import flash.utils.Timer;
 	import starling.core.Starling;
 	import starling.display.DisplayObject;
 	import starling.display.Image;
@@ -43,6 +45,7 @@ package com.fc.air
 		import com.leadbolt.aslib.LeadboltController;
 		import com.leadbolt.aslib.LeadboltAdEvent;		
 		import com.fc.air.base.SocialForAndroid;
+		import com.fc.FCAndroidUtility;
 	}
 	
 	CONFIG::isIOS {
@@ -88,6 +91,8 @@ package com.fc.air
 		}
 		
 		static private var rnd:Random;
+		static private var timerTween:Timer;
+		static private var tweenList:Dictionary;
 		
 		public static function getFilter(type:int):FragmentFilter
 		{
@@ -107,12 +112,79 @@ package com.fc.air
 					break;
 			}
 			return colorMatrixFilter;
-		}
+		}				
 		
 		public function Util()
 		{
 		
 		}	
+		
+		CONFIG::isAndroid {
+			public static const BASE:int = 1
+			public static const BASE_1_1:int = 2
+			public static const CUPCAKE:int = 3
+			public static const CUR_DEVELOPMENT:int = 10000
+			public static const DONUT:int = 4
+			public static const ECLAIR:int = 5
+			public static const ECLAIR_0_1:int = 6
+			public static const ECLAIR_MR1:int = 7
+			public static const FROYO:int = 8
+			public static const GINGERBREAD:int = 9
+			public static const GINGERBREAD_MR1:int = 10
+			public static const HONEYCOMB:int = 11
+			public static const HONEYCOMB_MR1:int = 12
+			public static const HONEYCOMB_MR2:int = 13
+			public static const ICE_CREAM_SANDWICH:int = 14
+			public static const ICE_CREAM_SANDWICH_MR1:int = 15
+			public static const JELLY_BEAN:int = 16
+			public static const JELLY_BEAN_MR1:int = 17
+			public static const JELLY_BEAN_MR2:int = 18
+			public static const KITKAT:int = 19
+
+			public static function initAndroidUtility(onInit:Function, vungleAppID:String = ""):void
+			{
+				FCAndroidUtility.instance.onInit = onInit;
+				FCAndroidUtility.instance.init(vungleAppID);
+			}
+			
+			public static function initAndroidVideoAdHandle(onVideoStart:Function=null, onVideoDone:Function=null, onVideoNotDone:Function=null):void
+			{
+				FCAndroidUtility.instance.onAdDone = onVideoStart;
+				FCAndroidUtility.instance.onAdStart = onVideoDone;
+				FCAndroidUtility.instance.onAdNotDone = onVideoNotDone;
+			}		
+			
+			public static function get androidVideoAdAvailable():Boolean
+			{
+				return FCAndroidUtility.instance.isVideoAdAvailable();
+			}
+			
+			public static function showAndroidVideoAd():Boolean
+			{
+				return FCAndroidUtility.instance.showVideoAd();
+			}
+			
+			public static function get androidVersionInt():int
+			{
+				return FCAndroidUtility.instance.getVersionInt();
+			}
+			
+			public static function initAndroidAppStateHandle(onActivityPause:Function=null, onActivityStop:Function=null, onActivityResume:Function=null, onActivityRestart:Function=null):void
+			{
+				FCAndroidUtility.instance.onPause = onActivityPause;
+				FCAndroidUtility.instance.onStop = onActivityStop;
+				FCAndroidUtility.instance.onResume = onActivityResume;
+				FCAndroidUtility.instance.onRestart = onActivityRestart;
+			}
+			
+			public static function setAndroidFullscreen(value:Boolean):void
+			{
+				if (androidVersionInt >= KITKAT)
+			FCAndroidUtility.instance.setImmersive(value);
+			}
+		}		
+		
+		
 		
 		public static function get isFullApp():Boolean
 		{			
@@ -695,12 +767,24 @@ package com.fc.air
 		
 		public static function get deviceWidth():int
 		{
-			return Starling.current.nativeStage.fullScreenWidth;
+			CONFIG::isIOS {
+				return Starling.current.nativeStage.fullScreenWidth;
+			}
+			if(isDesktop)
+				return Starling.current.nativeStage.fullScreenWidth;
+			else
+				return Starling.current.nativeStage.stageWidth;
 		}
 		
 		public static function get deviceHeight():int
 		{
-			return Starling.current.nativeStage.fullScreenHeight;
+			CONFIG::isIOS {
+				return Starling.current.nativeStage.fullScreenHeight;
+			}
+			if (isDesktop)
+				return Starling.current.nativeStage.fullScreenHeight;
+			else
+				return Starling.current.nativeStage.stageHeight;
 		}
 		
 		public static function getLocalData(soName:String):SharedObject
@@ -914,6 +998,67 @@ package com.fc.air
 			}
 			return Number(rnd.nextByte()) / 256 * maxValue;
 		}
+		
+		/**
+		 * 
+		 * @param	obj object to tween
+		 * @param	props props to change
+		 * @param	onUpdate function(obj,props)
+		 * @param	onComplete function(obj,props)
+		 */
+		static public function tweenWithTimer(obj:Object, props:Object, onUpdate:Function, onComplete:Function):void
+		{
+			if (!timerTween)
+			{
+				timerTween = new Timer(1000 / Starling.current.nativeStage.frameRate);
+				timerTween.addEventListener(TimerEvent.TIMER, onTimerTween);
+				timerTween.start();
+				tweenList = new Dictionary();
+			}
+			if (tweenList[obj] == null)
+			{
+				tweenList[obj] = {
+					obj:obj,
+					props:props,
+					update:onUpdate,
+					complete:onComplete
+				};
+			}
+		}
+		
+		static private function onTimerTween(e:TimerEvent):void 
+		{
+			for each(var item:Object in tweenList)
+			{
+				var obj:Object = item.obj;
+				var props:Object = item.props;
+				var onUpdate:Function = item.update;
+				var onComplete:Function = item.complete;
+				var bool:Boolean = true;
+				for (var name:String in props) 
+				{
+					if (obj.hasOwnProperty(name))
+					{
+						if (!props.hasOwnProperty("tmp" + name))
+							props["tmp" + name] = obj[name];
+						props["tmp" + name] = props["tmp" + name] + (props[name] - props["tmp" + name]) / 5;
+						bool &&= Math.abs(int(props["tmp" + name] * 100) - int(props[name] * 100)) <= 1;
+						obj[name] = props["tmp" + name];
+						if (bool)
+							obj[name] = props[name];
+					}
+				}
+				if (onUpdate is Function)
+					onUpdate(obj, props);
+				if (bool)
+				{
+					if(onComplete is Function)
+						onComplete(obj, props);					
+					delete tweenList[obj];
+				}
+			}
+		}
 	}
 
 }
+
