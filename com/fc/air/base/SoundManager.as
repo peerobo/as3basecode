@@ -269,7 +269,7 @@ package com.fc.air.base
 				sndName = _loadList[0].name;
 			if (!completeSound)			
 				completeSound = { };			
-			completeSound[sndName] = snd;			
+			completeSound[sndName] = snd;
 			// play instantly if it is theme song
 			if (_loadList[0].isThemeMusic)
 				this.playSound(sndName, true);

@@ -65,6 +65,42 @@ package com.fc.air.base
 			floatTextMessageEffect(text, p, color, time);			
 		}
 		
+		public static function interpolate(obj:DisplayObject, destPt:Point, interPt:Point, time:Number = 0.4, autoRemove:Boolean = true, onComplete:Function=null):void
+		{
+			var tween:Tween = new Tween(obj, time);
+			tween.onUpdate = onCurveDispWithTween;
+			var start:Point = new Point(obj.x, obj.y);
+			tween.onUpdateArgs = [start, interPt, destPt, tween];
+			tween.onCompleteArgs = [obj,onComplete,autoRemove];
+			tween.onComplete = onDoneInterpolate;
+			Starling.juggler.add(tween);
+		}
+		
+		static private function onDoneInterpolate(disp:DisplayObject,onComplete:Function,autoRemove:Boolean):void 
+		{
+			if (autoRemove)
+				disp.removeFromParent();
+			if (onComplete is Function)
+				onComplete();
+		}
+		
+		private static function onCurveDispWithTween(start:Point, mid:Point, end:Point, tween:Tween):void
+		{
+			var tt:Number = tween.progress;
+			var disp:DisplayObject = tween.target as DisplayObject;
+			var pt:Point = onCurveDisp(start, mid, end, tt);
+			disp.x = pt.x;
+			disp.y = pt.y;
+			return;
+		}
+		
+		private static function onCurveDisp(start:Point, mid:Point, end:Point, t:Number):Point
+		{
+			var x:Number = (1 - t) * (1 - t) * start.x + 2 * (1 - t) * t * mid.x + t * t * end.x;
+			var y:Number = (1 - t) * (1 - t) * start.y + 2 * (1 - t) * t * mid.y + t * t * end.y;
+			return new Point(x, y);
+		}
+		
 	}
 
 }

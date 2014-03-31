@@ -62,8 +62,7 @@ package com.fc.air.base
 			filter = null;
 			pivotY = pivotX = 0;
 			rotation = 0;
-			alpha = 1;					
-			unflatten();
+			alpha = 1;			
 			
 			for (var i:int = 0; i < numChildren; i++) 
 			{

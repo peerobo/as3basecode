@@ -1040,8 +1040,8 @@ package com.fc.air
 					if (obj.hasOwnProperty(name))
 					{
 						if (!props.hasOwnProperty("tmp" + name))
-							props["tmp" + name] = obj[name];
-						props["tmp" + name] = props["tmp" + name] + (props[name] - props["tmp" + name]) / 5;
+							props["tmp" + name] = obj[name];						
+						props["tmp" + name] = props["tmp" + name] + (props[name] - props["tmp" + name]) / 3;
 						bool &&= Math.abs(int(props["tmp" + name] * 100) - int(props[name] * 100)) <= 1;
 						obj[name] = props["tmp" + name];
 						if (bool)
