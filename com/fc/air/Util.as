@@ -14,7 +14,7 @@ package com.fc.air
 	import com.hurlant.crypto.hash.IHash;
 	import com.hurlant.crypto.prng.ARC4;
 	import com.hurlant.crypto.prng.Random;
-	import com.hurlant.util.Hex;
+	import com.hurlant.util.Hex;	
 	import feathers.display.Scale9Image;
 	import feathers.textures.Scale9Textures;
 	import flash.data.EncryptedLocalStore;
@@ -46,6 +46,9 @@ package com.fc.air
 		import com.leadbolt.aslib.LeadboltAdEvent;		
 		import com.fc.air.base.SocialForAndroid;
 		import com.fc.FCAndroidUtility;
+		import com.vungle.extensions.events.VungleEvent;
+		import com.vungle.extensions.Vungle;
+		import com.vungle.extensions.VungleOrientation;
 	}
 	
 	CONFIG::isIOS {
@@ -54,6 +57,9 @@ package com.fc.air
 		import com.adobe.ane.social.SocialUI;
 		import com.leadbolt.aslib.LeadboltController;
 		import com.leadbolt.aslib.LeadboltAdEvent;
+		import com.vungle.extensions.events.VungleEvent;
+		import com.vungle.extensions.Vungle;
+		import com.vungle.extensions.VungleOrientation;
 	}
 	
 	/**
@@ -76,6 +82,7 @@ package com.fc.air
 		private static const AD_FULLSCREEN:int = 0;
 		private static const AD_BANNER:int = 1;
 		private static const AD_MORE_GAME:int = 2;
+		static private var videoAdViewedCallback:Function;
 		CONFIG::isAndroid {
 			//private static var leadBoltBanner:LeadboltController;
 			//private static var leadBoltFullscreen:LeadboltController;
@@ -92,7 +99,7 @@ package com.fc.air
 		
 		static private var rnd:Random;
 		static private var timerTween:Timer;
-		static private var tweenList:Dictionary;
+		static private var tweenList:Dictionary;		
 		
 		public static function getFilter(type:int):FragmentFilter
 		{
@@ -141,29 +148,12 @@ package com.fc.air
 			public static const JELLY_BEAN_MR2:int = 18
 			public static const KITKAT:int = 19
 
-			public static function initAndroidUtility(onInit:Function, vungleAppID:String = ""):void
+			public static function initAndroidUtility(onInit:Function):void
 			{
 				FCAndroidUtility.instance.onInit = onInit;
-				FCAndroidUtility.instance.init(vungleAppID);
+				FCAndroidUtility.instance.init();
 			}
-			
-			public static function initAndroidVideoAdHandle(onVideoStart:Function=null, onVideoDone:Function=null, onVideoNotDone:Function=null):void
-			{
-				FCAndroidUtility.instance.onAdDone = onVideoStart;
-				FCAndroidUtility.instance.onAdStart = onVideoDone;
-				FCAndroidUtility.instance.onAdNotDone = onVideoNotDone;
-			}		
-			
-			public static function get androidVideoAdAvailable():Boolean
-			{
-				return FCAndroidUtility.instance.isVideoAdAvailable();
-			}
-			
-			public static function showAndroidVideoAd():Boolean
-			{
-				return FCAndroidUtility.instance.showVideoAd();
-			}
-			
+
 			public static function get androidVersionInt():int
 			{
 				return FCAndroidUtility.instance.getVersionInt();
@@ -180,12 +170,85 @@ package com.fc.air
 			public static function setAndroidFullscreen(value:Boolean):void
 			{
 				if (androidVersionInt >= KITKAT)
-			FCAndroidUtility.instance.setImmersive(value);
+					FCAndroidUtility.instance.setImmersive(value);
 			}
-		}		
+			
+			public static function initVideoAd(appID:String, landscape:Boolean, viewDone:Function):void		
+			{			
+				if (isDesktop)
+					return;
+				if (Vungle.isSupported())
+				{
+					Vungle.create([appID], landscape? VungleOrientation.LANDSCAPE:VungleOrientation.PORTRAIT);
+					Vungle.vungle.addEventListener(VungleEvent.AD_VIEWED, onVideoAdViewed);
+					videoAdViewedCallback = viewDone;
+				}
+				
+			}
+			
+			static private function onVideoAdViewed(e:VungleEvent):void 
+			{
+				var percentComplete:Number=e.watched/e.length;
+				if(percentComplete>1)
+				{
+					if (videoAdViewedCallback is Function)
+						videoAdViewedCallback();
+				}
+			}
+			
+			public static function isVideoAdAvailable():Boolean
+			{
+				if (isDesktop)
+					return false;
+				return Vungle.isSupported() ? Vungle.vungle.isAdAvailable() : false;
+			}
+			
+			public static function showVideoAd():void
+			{
+				if (isDesktop)
+					return;
+				Vungle.vungle.displayAd();
+			}
+		}	
 		
-		
-		
+		CONFIG::isIOS {
+			public static function initVideoAd(appID:String, landscape:Boolean, viewDone:Function):void		
+			{			
+				if (isDesktop)
+					return;
+				if (Vungle.isSupported())
+				{
+					Vungle.create([appID], landscape? VungleOrientation.LANDSCAPE:VungleOrientation.PORTRAIT);
+					Vungle.vungle.addEventListener(VungleEvent.AD_VIEWED, onVideoAdViewed);
+					videoAdViewedCallback = viewDone;
+				}
+				
+			}
+			
+			static private function onVideoAdViewed(e:VungleEvent):void 
+			{
+				var percentComplete:Number=e.watched/e.length;
+				if(percentComplete>1)
+				{
+					if (videoAdViewedCallback is Function)
+						videoAdViewedCallback();
+				}
+			}
+			
+			public static function isVideoAdAvailable():Boolean
+			{
+				if (isDesktop)
+					return false;
+				return Vungle.isSupported() ? Vungle.vungle.isAdAvailable() : false;
+			}
+			
+			public static function showVideoAd():void
+			{
+				if (isDesktop)
+					return;
+				Vungle.vungle.displayAd();
+			}
+		}
 		public static function get isFullApp():Boolean
 		{			
 			var iap:IAP = Factory.getInstance(IAP);
@@ -822,9 +885,7 @@ package com.fc.air
 					img.smoothing = TextureSmoothing.BILINEAR;
 					return img;
 				}, function(img:Image):void
-				{
-					img.texture = Texture.empty(1, 1);
-					img.readjustSize();
+				{									
 					img.x = img.y = 0;
 					img.scaleX = img.scaleY = 1;
 					img.touchable = true;
@@ -834,6 +895,8 @@ package com.fc.air
 					img.rotation = 0;
 					img.alpha = 1;						
 					img.smoothing = TextureSmoothing.BILINEAR;
+					img.dispose();
+					img.skewX = img.skewY = 0;					
 				});						
 				
 			Factory.registerPoolCreator(MovieClip, function():MovieClip

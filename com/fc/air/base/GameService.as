@@ -23,7 +23,7 @@ package com.fc.air.base
 		private var highscoreMap:Object;
 		private var gameCenterLogged:Boolean;
 		private var googlePlayLogged:Boolean;		
-		private var achievementBanner:IAchievementBanner;
+		public var achievementBanner:IAchievementBanner;
 		
 		// game center only
 		CONFIG::isIOS{
