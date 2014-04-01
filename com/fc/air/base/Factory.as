@@ -15,7 +15,7 @@ package com.fc.air.base
 	 * 
 	 * @author PhuongND
 	 */
-	public class Factory implements IAnimatable 
+	public class Factory
 	{
 		private var map:Object;	// "key" => { obj: Object, time: int}
 		private var pool:Object;	// "key" => [instance1, instance2,...]
@@ -116,41 +116,14 @@ package com.fc.air.base
 		}
 		
 		public function Factory() 
-		{			
-			Starling.juggler.add(this);
+		{						
 			map = new Object();
 			pool = new Object();
 			mapPersistent = new Object();
 			objCreator = new Object();
 			objResetor = new Object();
 		}
-		
-		public function getTmpInstance(C:Class):*
-		{
-			var key:String = getQualifiedClassName(C);
-			var obj:*= null;
-			
-			if (map.hasOwnProperty(key))
-			{
-				obj = map[key]["obj"];
-				map[key]["time"] = 0;
-			}
-			else
-			{
-				obj = new C();
-				map[key] = {
-					obj: obj,
-					time: 0
-				};
-			}
-			return obj;
-		}
-		
-		public static function getTmpInstance(C:Class):*
-		{
-			return ins.getTmpInstance(C);
-		}
-		
+				
 		public static function getInstance(C:Class):*
 		{
 			return ins.getInstance(C);
@@ -211,20 +184,7 @@ package com.fc.air.base
 				var arrCall:Array = ins.touchDict[e.currentTarget];
 				arrCall[0].apply(ins,arrCall[1]);
 			}
-		}		
-		
-		/* INTERFACE starling.animation.IAnimatable */
-		
-		public function advanceTime(time:Number):void 
-		{
-			var dt:int = time * 1000;
-			for (var key:String in map) 
-			{
-				map[key]["time"] += dt;
-				if (map[key]["time"] >= DESTROYTIME)
-					delete map[key];
-			}
-		}
+		}						
 		
 	}
 

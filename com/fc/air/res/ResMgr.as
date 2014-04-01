@@ -113,6 +113,7 @@ package com.fc.air.res
 				callbackObj.p = [];
 			callbackObj.p.splice(0, 0, urlLoader.data);
 			callbackObj.f.apply(this, callbackObj.p);
+			Factory.toPool(callbackObj);
 			waitList.splice(0, 1);
 			if (waitList.length > 0)
 				continueLoad();

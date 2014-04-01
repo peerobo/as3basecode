@@ -14,15 +14,17 @@ package com.fc.air.base
 	 */
 	public class EffectMgr 
 	{
-		public static var DEFAULT_FONT:String;
+		public static var DEFAULT_FONT:String;		
+		private static var tweens:Array;
 		
 		public function EffectMgr() 
-		{
-			
+		{			
 		}
 		
 		public static function floatObject(obj:DisplayObject, pos:Point, dir:String = "y", time:Number = 0.5):void
-		{			
+		{
+			if (!tweens)
+				tweens = [];
 			LayerMgr.getLayer(LayerMgr.LAYER_EFFECT).addChild(obj);
 			
 			var t:Tween = new Tween(obj, time, Transitions.EASE_OUT);
@@ -31,6 +33,7 @@ package com.fc.air.base
 			t.onComplete = onFloatObjectComplete;
 			t.onCompleteArgs = [t, obj];		
 			Starling.juggler.add(t);
+			tweens.push(t);
 		}
 		
 		private static function onFloatObjectComplete(t:Tween,obj:DisplayObject):void
@@ -67,6 +70,8 @@ package com.fc.air.base
 		
 		public static function interpolate(obj:DisplayObject, destPt:Point, interPt:Point, time:Number = 0.4, autoRemove:Boolean = true, onComplete:Function=null):void
 		{
+			if (!tweens)
+				tweens = [];				
 			var tween:Tween = new Tween(obj, time);
 			tween.onUpdate = onCurveDispWithTween;
 			var start:Point = new Point(obj.x, obj.y);
@@ -74,6 +79,7 @@ package com.fc.air.base
 			tween.onCompleteArgs = [obj,onComplete,autoRemove];
 			tween.onComplete = onDoneInterpolate;
 			Starling.juggler.add(tween);
+			tweens.push(tween);
 		}
 		
 		static private function onDoneInterpolate(disp:DisplayObject,onComplete:Function,autoRemove:Boolean):void 
@@ -99,6 +105,20 @@ package com.fc.air.base
 			var x:Number = (1 - t) * (1 - t) * start.x + 2 * (1 - t) * t * mid.x + t * t * end.x;
 			var y:Number = (1 - t) * (1 - t) * start.y + 2 * (1 - t) * t * mid.y + t * t * end.y;
 			return new Point(x, y);
+		}
+		
+		public static function purge():void
+		{			
+			
+			if (tweens)
+			{
+				for (var i:int = 0; i < tweens.length; i++) 
+				{				
+					(tweens[i] as Tween).onComplete.apply(tweens[i], (tweens[i] as Tween).onCompleteArgs);
+					Starling.juggler.remove(tweens[i]);
+				}
+				tweens.splice(0, tweens.length);
+			}
 		}
 		
 	}

@@ -20,6 +20,7 @@ package com.fc.air.base
 			var scr:DisplayObject = Factory.getInstance(c) as DisplayObject;			
 			if (currScr == scr)
 				return;
+			EffectMgr.purge();
 			if (currScr)
 				currScr.removeFromParent();
 			PopupMgr.flush();

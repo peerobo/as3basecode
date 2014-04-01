@@ -455,7 +455,7 @@ package com.fc.air.base
 				}
 				layer.removeChildren();
 				layer.removeFromParent();
-			}
+			}			
 			
 			// init new objects
 			layers = null;
