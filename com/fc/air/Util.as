@@ -622,8 +622,7 @@ package com.fc.air
 						createLeadBoltController(appSpecific["banner"]);
 					else
 						leadBoltController.destroyAd();
-					leadBoltController.loadAdToCache();
-					Starling.juggler.delayCall(showBannerAd, 120);
+					leadBoltController.loadAdToCache();					
 					currentAdType = AD_BANNER;
 				}
 			}
