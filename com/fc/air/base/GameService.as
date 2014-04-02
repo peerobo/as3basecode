@@ -21,6 +21,7 @@ package com.fc.air.base
 		static public const HIGHSCORE_ITUNE_PRE:String = "cat";
 		static public const OVERALL_HIGHSCORE:String = "overall";
 		private var highscoreMap:Object;
+		private var achiMap:Object;
 		private var gameCenterLogged:Boolean;
 		private var googlePlayLogged:Boolean;		
 		public var achievementBanner:IAchievementBanner;
@@ -103,6 +104,7 @@ package com.fc.air.base
 		public function GameService() 
 		{
 			highscoreMap = { };
+			achiMap = { };
 		}
 		
 		public function registerType(type:String):void
@@ -137,26 +139,29 @@ package com.fc.air.base
 			}			
 		}
 		
-		public function saveHighscore():void
+		public function save():void
 		{
 			for (var s:String in highscoreMap) 
 			{
-				Util.setPrivateValue(s, highscoreMap[s]);
-				if(highscoreMap[s] > 0)
-					FPSCounter.log(s,highscoreMap[s]);
-			}			
+				Util.setPrivateValue(s, highscoreMap[s]);				
+			}	
+			var achStr:String = JSON.stringify(achiMap);
+			Util.setPrivateValue("achi", achStr);
 		}
 		
-		public function loadHighscore():void
+		public function load():void
 		{
 			for (var s:String in highscoreMap) 
 			{
 				var tmpVal:String = Util.getPrivateKey(s);
 				var val:int = parseInt(tmpVal);
-				highscoreMap[s] = val;
-				if(val > 0)
-					FPSCounter.log(s,val);
+				highscoreMap[s] = val;				
 			}
+			var achStr:String = Util.getPrivateKey("achi");
+			if (achStr != null)
+				achiMap = JSON.parse(achStr);
+			else
+				achiMap = { };
 			
 		}
 		
@@ -237,7 +242,8 @@ package com.fc.air.base
 		{
 			var ach:String;
 			var key:String = "achievement" + type;
-			var checkDone:String = Util.getPrivateKey(key);
+			var checkDone:Boolean = achiMap.hasOwnProperty(key);
+			//var checkDone:String = Util.getPrivateKey(key);
 			if (checkDone)
 				return;
 			
@@ -245,14 +251,14 @@ package com.fc.air.base
 				if(gameCenterLogged)
 				{					
 					gcController.submitAchievement(type, 100);
-					Util.setPrivateValue(key, "available");
+					achiMap[key] = true;
 				}
 			}
 			CONFIG::isAndroid {
 				if(googlePlayLogged)
 				{					
 					googlePlay.reportAchievement(type);
-					Util.setPrivateValue(key, "available");
+					achiMap[key] = true;
 				}
 			}
 			

@@ -15,14 +15,16 @@ package com.fc.air.comp
 		private var font:String;
 		private var text:String;
 		private var bg:String;
+		private var color:int;
 		
 		public function BGText() 
 		{
 			super();		
 		}
 		
-		public function setText(font:String, text:String, bg:String):void
+		public function setText(font:String, text:String, bg:String, color:int = 0xFFFFFF):void
 		{
+			this.color = color;
 			this.bg = bg;
 			this.text = text;
 			this.font = font;			
@@ -33,7 +35,7 @@ package com.fc.air.comp
 			super.onAdded(e);
 			
 			var bg:DisplayObject = Asset.getBaseImage(bg);
-			var tf:BaseBitmapTextField = BFConstructor.getTextField(1, 1, text, font);
+			var tf:BaseBitmapTextField = BFConstructor.getTextField(1, 1, text, font,color);
 			tf.autoSize = TextFieldAutoSize.BOTH_DIRECTIONS;
 			bg.width = tf.width + 60;
 			bg.height = tf.height + 60;
