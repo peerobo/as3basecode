@@ -83,6 +83,8 @@ package com.fc.air
 		private static const AD_BANNER:int = 1;
 		private static const AD_MORE_GAME:int = 2;
 		static private var videoAdViewedCallback:Function;
+		static private var videoAdStartCallback:Function;
+		static private var videoAdDoneCallback:Function;
 		CONFIG::isAndroid {
 			//private static var leadBoltBanner:LeadboltController;
 			//private static var leadBoltFullscreen:LeadboltController;
@@ -173,79 +175,103 @@ package com.fc.air
 					FCAndroidUtility.instance.setImmersive(value);
 			}
 			
-			public static function initVideoAd(appID:String, landscape:Boolean, viewDone:Function):void		
+			public static function initVideoAd(appID:String, landscape:Boolean, viewDone:Function, videoStart:Function, videoStop:Function):void		
 			{			
 				if (isDesktop)
 					return;
 				if (Vungle.isSupported())
-				{
+				{					
 					Vungle.create([appID], landscape? VungleOrientation.LANDSCAPE:VungleOrientation.PORTRAIT);
 					Vungle.vungle.addEventListener(VungleEvent.AD_VIEWED, onVideoAdViewed);
+					Vungle.vungle.addEventListener(VungleEvent.AD_STARTED, onVideoAdViewed);
+					Vungle.vungle.addEventListener(VungleEvent.AD_FINISHED, onVideoAdViewed);
 					videoAdViewedCallback = viewDone;
+					videoAdStartCallback = videoStart;
+					videoAdDoneCallback = videoStop;
 				}
 				
 			}
 			
 			static private function onVideoAdViewed(e:VungleEvent):void 
 			{
-				var percentComplete:Number=e.watched/e.length;
-				if(percentComplete>1)
+				if (e.type == VungleEvent.AD_VIEWED)
 				{
-					if (videoAdViewedCallback is Function)
-						videoAdViewedCallback();
+					var percentComplete:Number=e.watched/e.length;
+					if(percentComplete>=1)
+					{
+						if (videoAdViewedCallback is Function)
+							videoAdViewedCallback();
+					}
+				}
+				else if (e.type == VungleEvent.AD_STARTED)
+				{
+					if (videoAdStartCallback is Function)
+						videoAdStartCallback();
+				}
+				else if (e.type == VungleEvent.AD_FINISHED)
+				{
+					if (videoAdDoneCallback is Function)
+						videoAdDoneCallback();
 				}
 			}
 			
 			public static function isVideoAdAvailable():Boolean
-			{
-				if (isDesktop)
-					return false;
-				return Vungle.isSupported() ? Vungle.vungle.isAdAvailable() : false;
+			{								
+				return Vungle.vungle.isAdAvailable();
 			}
 			
 			public static function showVideoAd():void
 			{
-				if (isDesktop)
-					return;
 				Vungle.vungle.displayAd();
 			}
 		}	
 		
 		CONFIG::isIOS {
-			public static function initVideoAd(appID:String, landscape:Boolean, viewDone:Function):void		
+			public static function initVideoAd(appID:String, landscape:Boolean, viewDone:Function, videoStart:Function, videoStop:Function):void		
 			{			
-				if (isDesktop)
-					return;
 				if (Vungle.isSupported())
-				{
+				{					
 					Vungle.create([appID], landscape? VungleOrientation.LANDSCAPE:VungleOrientation.PORTRAIT);
 					Vungle.vungle.addEventListener(VungleEvent.AD_VIEWED, onVideoAdViewed);
+					Vungle.vungle.addEventListener(VungleEvent.AD_STARTED, onVideoAdViewed);
+					Vungle.vungle.addEventListener(VungleEvent.AD_FINISHED, onVideoAdViewed);
 					videoAdViewedCallback = viewDone;
+					videoAdStartCallback = videoStart;
+					videoAdDoneCallback = videoStop;
 				}
 				
 			}
 			
 			static private function onVideoAdViewed(e:VungleEvent):void 
 			{
-				var percentComplete:Number=e.watched/e.length;
-				if(percentComplete>1)
+				if (e.type == VungleEvent.AD_VIEWED)
 				{
-					if (videoAdViewedCallback is Function)
-						videoAdViewedCallback();
+					var percentComplete:Number=e.watched/e.length;
+					if(percentComplete>=1)
+					{
+						if (videoAdViewedCallback is Function)
+							videoAdViewedCallback();
+					}
+				}
+				else if (e.type == VungleEvent.AD_STARTED)
+				{
+					if (videoAdStartCallback is Function)
+						videoAdStartCallback();
+				}
+				else if (e.type == VungleEvent.AD_FINISHED)
+				{
+					if (videoAdDoneCallback is Function)
+						videoAdDoneCallback();
 				}
 			}
 			
 			public static function isVideoAdAvailable():Boolean
-			{
-				if (isDesktop)
-					return false;
-				return Vungle.isSupported() ? Vungle.vungle.isAdAvailable() : false;
+			{				
+				return Vungle.vungle.isAdAvailable();
 			}
 			
 			public static function showVideoAd():void
 			{
-				if (isDesktop)
-					return;
 				Vungle.vungle.displayAd();
 			}
 		}

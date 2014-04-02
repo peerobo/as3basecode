@@ -242,28 +242,28 @@ package com.fc.air.base
 		{
 			var ach:String;
 			var key:String = "achievement" + type;
-			var checkDone:Boolean = achiMap.hasOwnProperty(key);
-			//var checkDone:String = Util.getPrivateKey(key);
-			if (checkDone)
-				return;
-			
-			CONFIG::isIOS {
-				if(gameCenterLogged)
-				{					
-					gcController.submitAchievement(type, 100);
-					achiMap[key] = true;
-				}
-			}
-			CONFIG::isAndroid {
-				if(googlePlayLogged)
-				{					
-					googlePlay.reportAchievement(type);
-					achiMap[key] = true;
-				}
-			}
-			
 			if (gameCenterLogged || googlePlayLogged)
 			{
+				var checkDone:Boolean = achiMap.hasOwnProperty(key);
+				//var checkDone:String = Util.getPrivateKey(key);
+				if (checkDone)
+					return;
+				
+				CONFIG::isIOS {
+					if(gameCenterLogged)
+					{					
+						gcController.submitAchievement(type, 100);
+						achiMap[key] = true;
+					}
+				}
+				CONFIG::isAndroid {
+					if(googlePlayLogged)
+					{					
+						googlePlay.reportAchievement(type);
+						achiMap[key] = true;
+					}
+				}
+				
 				if(!achievementBanner.isShowing)
 					achievementBanner.setLabelAndShow(type);
 				else

@@ -132,15 +132,13 @@ package com.fc.air.base
 			}
 			label = txt;
 			label.batchable = true;
-			addChild(label);
-			flatten();
+			addChild(label);			
 		}
 		
 		public function addIcon(icon:DisplayObject):void
 		{			
 			icons.push(icon);
-			this.addChild(icon);	
-			flatten();
+			this.addChild(icon);				
 		}
 		
 		public function get isDisable():Boolean
@@ -264,8 +262,7 @@ package com.fc.air.base
 			{				
 				label.x = 0;
 				label.y = 0;
-			}
-			flatten();
+			}			
 		}
 	}
 }

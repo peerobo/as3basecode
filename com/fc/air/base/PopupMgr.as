@@ -15,7 +15,7 @@ package com.fc.air.base
 	{
 		private static var root:Sprite;
 		static private var quadBg:Quad;
-		
+		static public var flattenOnPopup:Boolean;
 		static private var queue:Array;
 		static public var current:DisplayObject;
 		
@@ -50,6 +50,8 @@ package com.fc.air.base
 					disp.scaleX = disp.scaleY = 0.1;
 					centerDisp(disp);										
 				}
+				if (flattenOnPopup)
+					LayerMgr.lockGameLayer = true;
 			}
 			else if (current != disp)			
 			{
@@ -77,10 +79,14 @@ package com.fc.air.base
 					root.addChild(disp);
 					current = disp;
 					centerDisp(disp);
+					if (flattenOnPopup)
+						LayerMgr.lockGameLayer = true;
 				}
 				else
 				{
 					quadBg.visible = false;
+					if (flattenOnPopup)
+						LayerMgr.lockGameLayer = false;
 				}
 			}			
 			else if (queue.indexOf(disp) > -1)
