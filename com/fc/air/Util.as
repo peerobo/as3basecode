@@ -10,6 +10,7 @@ package com.fc.air
 	import com.fc.air.base.LayerMgr;
 	import com.fc.air.comp.IInfoDlg;
 	import com.fc.air.comp.ILoading;
+	import com.fc.air.res.ResMgr;
 	import com.hurlant.crypto.Crypto;
 	import com.hurlant.crypto.hash.IHash;
 	import com.hurlant.crypto.prng.ARC4;
@@ -102,6 +103,7 @@ package com.fc.air
 		static private var rnd:Random;
 		static private var timerTween:Timer;
 		static private var tweenList:Dictionary;		
+		static private var initVideoAdDone:Boolean;
 		
 		public static function getFilter(type:int):FragmentFilter
 		{
@@ -150,23 +152,14 @@ package com.fc.air
 			public static const JELLY_BEAN_MR2:int = 18
 			public static const KITKAT:int = 19
 
-			public static function initAndroidUtility(onInit:Function):void
-			{
-				FCAndroidUtility.instance.onInit = onInit;
+			public static function initAndroidUtility():void
+			{				
 				FCAndroidUtility.instance.init();
 			}
 
 			public static function get androidVersionInt():int
 			{
 				return FCAndroidUtility.instance.getVersionInt();
-			}
-			
-			public static function initAndroidAppStateHandle(onActivityPause:Function=null, onActivityStop:Function=null, onActivityResume:Function=null, onActivityRestart:Function=null):void
-			{
-				FCAndroidUtility.instance.onPause = onActivityPause;
-				FCAndroidUtility.instance.onStop = onActivityStop;
-				FCAndroidUtility.instance.onResume = onActivityResume;
-				FCAndroidUtility.instance.onRestart = onActivityRestart;
 			}
 			
 			public static function setAndroidFullscreen(value:Boolean):void
@@ -179,8 +172,9 @@ package com.fc.air
 			{			
 				if (isDesktop)
 					return;
-				if (Vungle.isSupported())
-				{					
+				if (Vungle.isSupported() && !initVideoAdDone)
+				{			
+					initVideoAdDone = true;
 					Vungle.create([appID], landscape? VungleOrientation.LANDSCAPE:VungleOrientation.PORTRAIT);
 					Vungle.vungle.addEventListener(VungleEvent.AD_VIEWED, onVideoAdViewed);
 					Vungle.vungle.addEventListener(VungleEvent.AD_STARTED, onVideoAdViewed);
@@ -229,8 +223,9 @@ package com.fc.air
 		CONFIG::isIOS {
 			public static function initVideoAd(appID:String, landscape:Boolean, viewDone:Function, videoStart:Function, videoStop:Function):void		
 			{			
-				if (Vungle.isSupported())
-				{					
+				if (Vungle.isSupported() && !initVideoAdDone)
+				{			
+					initVideoAdDone = true;
 					Vungle.create([appID], landscape? VungleOrientation.LANDSCAPE:VungleOrientation.PORTRAIT);
 					Vungle.vungle.addEventListener(VungleEvent.AD_VIEWED, onVideoAdViewed);
 					Vungle.vungle.addEventListener(VungleEvent.AD_STARTED, onVideoAdViewed);
@@ -317,11 +312,11 @@ package com.fc.air
 		}			
 		
 		CONFIG::isIOS{
-			public static function shareOnIOS(type:String,msg:String,image:BitmapData):void
+			public static function shareOnIOS(isFB:Boolean,msg:String,image:BitmapData):void
 			{
 				if(SocialUI.isSupported)
 				{
-					var sUI:SocialUI = new SocialUI(type);
+					var sUI:SocialUI = new SocialUI(isFB ? SocialServiceType.FACEBOOK : SocialServiceType.TWITTER);
 					sUI.setMessage(msg);
 					sUI.addImage(image);
 					sUI.addEventListener(Event.COMPLETE,onShareIOSDone);
@@ -1114,6 +1109,20 @@ package com.fc.air
 					complete:onComplete
 				};
 			}
+		}
+		
+		public static function get adBannerHeight():int 
+		{
+			var h:int = 0.124 * Starling.current.nativeStage.fullScreenHeight;
+			//h = h > 135 ? 135 : h;
+			h = h > 60 ? 60 : h;
+			return  h;
+		}
+		
+		static public function get internetAvailable():Boolean
+		{
+			var resMgr:ResMgr = Factory.getInstance(ResMgr);
+			return resMgr.isInternetAvailable;
 		}
 		
 		static private function onTimerTween(e:TimerEvent):void 

@@ -1,17 +1,15 @@
 package com.fc.air.base 
 {
-	import com.fc.air.FPSCounter;	
+	import flash.desktop.NativeApplication;
 	import flash.events.KeyboardEvent;
 	import flash.geom.Point;
+	import flash.ui.Keyboard;
 	import starling.animation.IAnimatable;
 	import starling.core.Starling;
 	import starling.display.Sprite;
 	import starling.events.Touch;
 	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
-	CONFIG::isAndroid {
-		import com.fc.FCAndroidUtility;
-	}
 	/**
 	 * ...
 	 * @author ndp
@@ -29,6 +27,7 @@ package com.fc.air.base
 		private var disableTimeout:Number;
 		private var swipeCallbacks:Array;	// callback object		
 		private var keyMap:Object;
+		private var onBackKeyHandle:Function;
 		public var currDownKey:int;
 		public static const SWIPE_AMP:int = 136;
 		public var root:Sprite;
@@ -38,21 +37,16 @@ package com.fc.air.base
 			disableTimeout = -1;
 			keyMap = { };
 			Starling.juggler.add(this);			
-			Starling.current.nativeStage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown,false, 1000);
-			Starling.current.nativeStage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp,false, 1000);
+			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown,false, 1000);
+			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_UP, onKeyUp,false, 1000);
 		}
 		
-		CONFIG::isAndroid 
+		
+		public function handleBackKey(onBackKey:Function = null):void
 		{
-			public function handleBackKey(onBackKey:Function = null):void
-			{
-				if(onBackKey is Function)
-					FCAndroidUtility.instance.isHandleBackKey = true;
-				else
-					FCAndroidUtility.instance.isHandleBackKey = false;
-				FCAndroidUtility.instance.onBackKeyHandle = onBackKey;				
-			}
+			onBackKeyHandle = onBackKey;
 		}
+		
 		
 		private function onKeyUp(e:KeyboardEvent):void 
 		{
@@ -83,6 +77,16 @@ package com.fc.air.base
 		
 		private function onKeyDown(e:KeyboardEvent):void 
 		{	
+			if (e.keyCode == Keyboard.BACK)
+			{
+				if (onBackKeyHandle is Function)
+				{
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					onBackKeyHandle();
+				}				
+				return;
+			}
 			currDownKey = e.keyCode;
 			e.preventDefault();
 			e.stopImmediatePropagation();

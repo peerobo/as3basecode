@@ -170,9 +170,9 @@ package com.fc.air.base
 			webView.stage = Starling.current.nativeStage;
 			var rec:Rectangle = Factory.getObjectFromPool(Rectangle);			
 			rec.width = Util.deviceWidth - Util.deviceWidth / 3;
-			rec.height = Util.deviceHeight - Util.deviceHeight / 3;			
+			rec.height = Util.deviceHeight - Util.deviceHeight / 3;
 			rec.x = Util.deviceWidth - rec.width >> 1;
-			rec.y = 60 * Starling.contentScaleFactor;
+			rec.y = Util.adBannerHeight + 60;
 			webView.viewPort = rec;
 			webView.addEventListener(ErrorEvent.ERROR, onNavigateToServiceError);
 			webView.addEventListener(LocationChangeEvent.LOCATION_CHANGE, onChangeLocation);

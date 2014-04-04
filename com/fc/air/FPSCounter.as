@@ -50,10 +50,9 @@ package com.fc.air
 					//trace(ticks / delta * 1000+" ticks:"+ticks+" delta:"+delta);
 					var fps:Number = ticks / delta * 1000;
 					var str:String = fps.toFixed(1) + " fps";
-					str += " - " + Starling.current.mSupport.drawCount + " drw"; 
+					str += " - " + (Starling.current ? Starling.current.mSupport.drawCount : "0") + " drw"; 
 					str += " - " + (System.totalMemory * 0.000000954).toFixed(2) + " MB";
-					str += " - " + Starling.current.nativeStage.fullScreenWidth + "x" + Starling.current.nativeStage.fullScreenHeight;					
-					str += " - " + ( Util.isAndroid? ("Android: " + Util.deviceID) : (Util.isIOS? "IOS: " + Util.deviceID : "not device") );
+					str += " - " + (Starling.current ? (Starling.current.nativeStage.fullScreenWidth + "x" + Starling.current.nativeStage.fullScreenHeight) : "");					
 					tf.text = str + log;
 					ticks = 0;
 					last = now;

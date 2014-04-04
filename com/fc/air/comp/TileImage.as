@@ -14,6 +14,9 @@ package com.fc.air.comp
 	 */
 	public class TileImage extends QuadBatch
 	{
+		private var tex:Texture;
+		private var w:int;
+		private var h:int;
 		public var scale:Number;
 		
 		public function TileImage()
@@ -22,8 +25,16 @@ package com.fc.air.comp
 			scale = 1;
 		}
 		
+		public function redraw():void
+		{
+			draw(tex, w, h);
+		}
+		
 		public function draw(tex:Texture, w:int, h:int):void
 		{
+			this.h = h;
+			this.w = w;
+			this.tex = tex;
 			var oXYImg:Image;
 			var oYImg:Image;
 			var oXImg:Image;
