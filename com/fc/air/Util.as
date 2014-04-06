@@ -151,10 +151,44 @@ package com.fc.air
 			public static const JELLY_BEAN_MR1:int = 17
 			public static const JELLY_BEAN_MR2:int = 18
 			public static const KITKAT:int = 19
-
-			public static function initAndroidUtility():void
+			private static var initAndroidDone:Function;
+			public static function initAndroidUtility(enableGooglePlay:Boolean, onInitDone:Function):void
 			{				
-				FCAndroidUtility.instance.init();
+				if(!FCAndroidUtility.instance.isInit)
+				{
+					FCAndroidUtility.instance.init(enableGooglePlay);
+					initAndroidDone = onInitDone;
+					if (enableGooglePlay)
+					{
+						/*FCAndroidUtility.instance.addEventListener(FCAndroidUtility.ACHIEVEMENT_WRONG, onGPResponse);
+						FCAndroidUtility.instance.addEventListener(FCAndroidUtility.ACHIVEMENT_WND_SHOWN, onGPResponse);
+						FCAndroidUtility.instance.addEventListener(FCAndroidUtility.LEADERBOARD_WND_SHOWN, onGPResponse);
+						FCAndroidUtility.instance.addEventListener(FCAndroidUtility.LICENSE_ERROR, onGPResponse);
+						FCAndroidUtility.instance.addEventListener(FCAndroidUtility.NETWORK_ERROR, onGPResponse);
+						FCAndroidUtility.instance.addEventListener(FCAndroidUtility.NOT_SIGN_IN, onGPResponse);
+						FCAndroidUtility.instance.addEventListener(FCAndroidUtility.SERVICE_ERROR, onGPResponse);*/
+						FCAndroidUtility.instance.addEventListener(FCAndroidUtility.SIGN_IN_FAILED, onGPResponse);
+						FCAndroidUtility.instance.addEventListener(FCAndroidUtility.SIGN_IN_OK, onGPResponse);
+					}
+					else
+					{
+						if(initAndroidDone is Function)
+							initAndroidDone();
+						initAndroidDone = null;
+					}
+				}
+			}
+			
+			static private function onGPResponse(e:Event):void 
+			{
+				if (e.type == FCAndroidUtility.SIGN_IN_FAILED || e.type == FCAndroidUtility.SIGN_IN_OK)
+				{
+					if(initAndroidDone is Function)
+						initAndroidDone();
+					initAndroidDone = null;
+					FCAndroidUtility.instance.removeEventListener(FCAndroidUtility.SIGN_IN_FAILED, onGPResponse);
+					FCAndroidUtility.instance.removeEventListener(FCAndroidUtility.SIGN_IN_OK, onGPResponse);
+				}
 			}
 
 			public static function get androidVersionInt():int

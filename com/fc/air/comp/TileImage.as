@@ -61,21 +61,21 @@ package com.fc.air.comp
 			Factory.toPool(rec);			
 			if (oW)
 			{
-				oXImg = Factory.getObjectFromPool(Image);
+				oXImg = Factory.getObjectFromPool(Image);				
 				oXImg.texture = oXTex;
-				oXImg.readjustSize();
+				oXImg.readjustSize();				
 			}			
 			if (oH)
 			{
 				oYImg = Factory.getObjectFromPool(Image);
 				oYImg.texture = oYTex;
-				oYImg.readjustSize();
+				oYImg.readjustSize();				
 			}			
 			if (oW && oH)
 			{
 				oXYImg = Factory.getObjectFromPool(Image);
 				oXYImg.texture = oXYTex;
-				oXYImg.readjustSize();
+				oXYImg.readjustSize();				
 			}			
 			var img:Image = Factory.getObjectFromPool(Image);
 			img.texture = tex;

@@ -2,15 +2,15 @@ package com.fc.air.base
 {
 	import com.fc.air.comp.IAchievementBanner;
 	import com.fc.air.FPSCounter;
-	import com.fc.air.Util;
+	import com.fc.air.Util;	
+	import flash.events.Event;
 	CONFIG::isIOS{
 		import com.adobe.ane.gameCenter.GameCenterAuthenticationEvent;
 		import com.adobe.ane.gameCenter.GameCenterController;
 		import com.adobe.ane.gameCenter.GameCenterLeaderboardEvent;
 	}
 	CONFIG::isAndroid{
-		import com.freshplanet.ane.AirGooglePlayGames.AirGooglePlayGames;
-		import com.freshplanet.ane.AirGooglePlayGames.AirGooglePlayGamesEvent;
+		import com.fc.FCAndroidUtility;
 	}
 	/**
 	 * ...
@@ -33,8 +33,9 @@ package com.fc.air.base
 		}
 		
 		CONFIG::isAndroid{
-			private var googlePlay:AirGooglePlayGames;			
-			private var callbackSignInOK:CallbackObj;
+			private var googlePlay:FCAndroidUtility;			
+			public var googlePlayTaskDone:Function;	//function()
+			public var googlePlayTaskRetValueReq:Array;
 		}
 		
 		
@@ -123,6 +124,8 @@ package com.fc.air.base
 		public function setHighscore(type:String, value:int):void
 		{
 			var catName:String;
+			if (highscoreMap[type] >= value)
+				return;
 			highscoreMap[type ] = value;					
 			CONFIG::isIOS{
 				if (Util.isIOS && gameCenterLogged && validCats)
@@ -132,9 +135,9 @@ package com.fc.air.base
 				}				
 			}
 			CONFIG::isAndroid {
-				if (Util.isAndroid && googlePlayLogged)
+				if (Util.isAndroid)
 				{					
-					googlePlay.reportScore(type, value);
+					googlePlay.gpSetScore(type,value);
 				}
 			}			
 		}
@@ -175,8 +178,24 @@ package com.fc.air.base
 					{
 						gcController.showLeaderboardView(catName);
 						var globalInput:GlobalInput = Factory.getInstance(GlobalInput);
-						globalInput.disable = true;
+						globalInput.disable = true;												
 					}
+				}
+				else if (gcController && !gameCenterLogged && validCats)
+				{
+					gcController.authenticate();
+				}
+			}
+		}
+		
+		public function showGameCenterAchievements():void 
+		{
+			CONFIG::isIOS{
+				if (gcController && gameCenterLogged)
+				{
+					gcController.showAchievementsView();						
+					var globalInput:GlobalInput = Factory.getInstance(GlobalInput);
+					globalInput.setDisableTimeout(3);
 				}
 				else if (gcController && !gameCenterLogged && validCats)
 				{
@@ -189,52 +208,45 @@ package com.fc.air.base
 		{
 			CONFIG::isAndroid{
 				// Initialize
-				googlePlay = AirGooglePlayGames.getInstance();
-				googlePlay.addEventListener(AirGooglePlayGamesEvent.ON_SIGN_IN_SUCCESS, onGooglePlayResponse);
-				googlePlay.addEventListener(AirGooglePlayGamesEvent.ON_SIGN_OUT_SUCCESS, onGooglePlayResponse);
-				googlePlay.addEventListener(AirGooglePlayGamesEvent.ON_SIGN_IN_FAIL, onGooglePlayResponse);
-				googlePlay.startAtLaunch();							
-			}
-		}
+				googlePlay = FCAndroidUtility.instance;
 				
-		public function showGooglePlayLeaderboard(cat:String):void 
-		{
-			CONFIG::isAndroid{
-				if(googlePlay && googlePlayLogged)
-				{
-					googlePlay.showLeaderboard(cat);
-				}
-				else if(googlePlay)
-				{
-					googlePlay.signIn();
-					callbackSignInOK = new CallbackObj(googlePlay.showLeaderboard, [cat]);
-				}
+				googlePlay.addEventListener(FCAndroidUtility.ACHIEVEMENT_WRONG, onGPResponse);
+				googlePlay.addEventListener(FCAndroidUtility.ACHIVEMENT_WND_SHOWN, onGPResponse);
+				googlePlay.addEventListener(FCAndroidUtility.LEADERBOARD_WND_SHOWN, onGPResponse);
+				googlePlay.addEventListener(FCAndroidUtility.LICENSE_ERROR, onGPResponse);
+				googlePlay.addEventListener(FCAndroidUtility.NETWORK_ERROR, onGPResponse);
+				googlePlay.addEventListener(FCAndroidUtility.NOT_SIGN_IN, onGPResponse);
+				googlePlay.addEventListener(FCAndroidUtility.SERVICE_ERROR, onGPResponse);
+				googlePlay.addEventListener(FCAndroidUtility.SIGN_IN_FAILED, onGPResponse);
+				googlePlay.addEventListener(FCAndroidUtility.SIGN_IN_OK, onGPResponse);
 			}
 		}
 		
-		CONFIG::isAndroid{
-			private function onGooglePlayResponse(e:AirGooglePlayGamesEvent):void 
-			{
-				switch(e.type)
+		private function onGPResponse(e:Event):void 
+		{
+			CONFIG::isAndroid{
+				var isError:Boolean = false;
+				if(googlePlayTaskRetValueReq.indexOf(e.type) > -1)
 				{
-					case AirGooglePlayGamesEvent.ON_SIGN_IN_SUCCESS:
-						googlePlayLogged = true;
-						FPSCounter.log("play login ok");
-						if (callbackSignInOK)
-						{	
-							callbackSignInOK.execute();
-							callbackSignInOK = null;
-						}
-					break;
-					case AirGooglePlayGamesEvent.ON_SIGN_IN_FAIL:
-						googlePlayLogged = false;						
-						FPSCounter.log("play login fail");
-					break;
-					case AirGooglePlayGamesEvent.ON_SIGN_OUT_SUCCESS:
-						googlePlayLogged = false;
-						googlePlay.signIn();
-					break;
+					if (googlePlayTaskDone is Function)
+						googlePlayTaskDone();
+					googlePlayTaskDone = null;
+					googlePlayTaskRetValueReq = null;
 				}
+			}
+		}
+				
+		public function showGooglePlayLeaderboard():void 
+		{
+			CONFIG::isAndroid{				
+				googlePlay.gpShowLeaderboard();									
+			}
+		}
+		
+		public function showGooglePlayAchievements():void 
+		{
+			CONFIG::isAndroid{				
+				googlePlay.gpShowAchievement();
 			}
 		}
 		
@@ -259,7 +271,7 @@ package com.fc.air.base
 				CONFIG::isAndroid {
 					if(googlePlayLogged)
 					{					
-						googlePlay.reportAchievement(type);
+						googlePlay.gpUnlockAchievement(type);
 						achiMap[key] = true;
 					}
 				}
