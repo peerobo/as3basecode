@@ -185,7 +185,7 @@ package com.fc.air
 				{
 					if(initAndroidDone is Function)
 						initAndroidDone();
-					initAndroidDone = null;
+					initAndroidDone = null;					
 					FCAndroidUtility.instance.removeEventListener(FCAndroidUtility.SIGN_IN_FAILED, onGPResponse);
 					FCAndroidUtility.instance.removeEventListener(FCAndroidUtility.SIGN_IN_OK, onGPResponse);
 				}
@@ -363,7 +363,7 @@ package com.fc.air
 				else
 				{
 					var str:String = LangUtil.getText("shareUnavailable");
-					str = Util.replaceStr(str, ["@type"], [type == SocialServiceType.FACEBOOK ? "Facebook":"Twitter"]);					
+					str = Util.replaceStr(str, ["@type"], [isFB ? "Facebook":"Twitter"]);					
 					showInfoDlg(str, null);					
 				}
 			}

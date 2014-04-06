@@ -36,6 +36,7 @@ package com.fc.air.base
 			private var googlePlay:FCAndroidUtility;			
 			public var googlePlayTaskDone:Function;	//function()
 			public var googlePlayTaskRetValueReq:Array;
+			public var googlePlayParam:Array;
 		}
 		
 		
@@ -172,11 +173,10 @@ package com.fc.air.base
 		{
 			CONFIG::isIOS{
 				if (gcController && gameCenterLogged && validCats)
-				{
-					var catName:String = HIGHSCORE_ITUNE_PRE + cat.substr(0, 1).toUpperCase() + cat.substr(1);
-					if(validCats.indexOf(catName) > -1)
+				{					
+					if(validCats.indexOf(cat) > -1)
 					{
-						gcController.showLeaderboardView(catName);
+						gcController.showLeaderboardView(cat);
 						var globalInput:GlobalInput = Factory.getInstance(GlobalInput);
 						globalInput.disable = true;												
 					}
@@ -225,13 +225,13 @@ package com.fc.air.base
 		private function onGPResponse(e:Event):void 
 		{
 			CONFIG::isAndroid{
-				var isError:Boolean = false;
 				if(googlePlayTaskRetValueReq.indexOf(e.type) > -1)
 				{
 					if (googlePlayTaskDone is Function)
-						googlePlayTaskDone();
+						googlePlayTaskDone.apply(this,googlePlayParam);
 					googlePlayTaskDone = null;
 					googlePlayTaskRetValueReq = null;
+					googlePlayParam = null;
 				}
 			}
 		}
@@ -254,33 +254,35 @@ package com.fc.air.base
 		{
 			var ach:String;
 			var key:String = "achievement" + type;
-			if (gameCenterLogged || googlePlayLogged)
-			{
-				var checkDone:Boolean = achiMap.hasOwnProperty(key);
-				//var checkDone:String = Util.getPrivateKey(key);
-				if (checkDone)
-					return;
-				
-				CONFIG::isIOS {
-					if(gameCenterLogged)
-					{					
-						gcController.submitAchievement(type, 100);
-						achiMap[key] = true;
-					}
+			var checkDone:Boolean = achiMap.hasOwnProperty(key);
+			//var checkDone:String = Util.getPrivateKey(key);
+			if (checkDone)
+				return;
+			
+			CONFIG::isIOS {
+				if(gameCenterLogged)
+				{					
+					gcController.submitAchievement(type, 100);
+					achiMap[key] = true;
 				}
-				CONFIG::isAndroid {
-					if(googlePlayLogged)
-					{					
-						googlePlay.gpUnlockAchievement(type);
-						achiMap[key] = true;
-					}
-				}
-				
-				if(!achievementBanner.isShowing)
-					achievementBanner.setLabelAndShow(type);
-				else
-					achievementBanner.queue(type);								
 			}
+			CONFIG::isAndroid {			
+				googlePlayTaskDone = onGPUnlockAchievementOK;
+				googlePlayParam = [key];
+				googlePlayTaskRetValueReq = [FCAndroidUtility.SIGN_IN_OK];
+				googlePlay.gpUnlockAchievement(type);			
+			}
+			
+			if(!achievementBanner.isShowing)
+				achievementBanner.setLabelAndShow(type);
+			else
+				achievementBanner.queue(type);								
+			
+		}
+		
+		private function onGPUnlockAchievementOK(key:String):void 
+		{
+			achiMap[key] = true;
 		}
 	}
 
