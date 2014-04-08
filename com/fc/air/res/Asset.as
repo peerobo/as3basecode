@@ -282,6 +282,7 @@ package com.fc.air.res
 			mv.texture = textures[0];
 			mv.readjustSize();
 			mv.scaleX = mv.scaleY = 1;
+			mv.currentFrame = 0;
 			Starling.juggler.add(mv);
 			return mv;
 		}

@@ -658,6 +658,9 @@ package com.fc.air
 		{
 			if (isInitAd)
 			{	
+				var resMgr:ResMgr = Factory.getInstance(ResMgr);
+				if (!resMgr.isInternetAvailable)
+					return;
 				FPSCounter.log("show banner");
 				CONFIG::isIOS{					
 					//leadBoltBanner.destroyAd();
@@ -978,7 +981,8 @@ package com.fc.air
 					mv.smoothing = TextureSmoothing.BILINEAR;
 					mv.stop();
 					mv.filter = null;
-					Starling.juggler.remove(mv);
+					mv.skewX = mv.skewY = 0;	
+					Starling.juggler.remove(mv);					
 				}
 				);
 			
