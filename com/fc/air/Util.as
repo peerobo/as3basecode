@@ -1119,7 +1119,7 @@ package com.fc.air
 				rnd = new Random(ARC4);			
 				rnd.autoSeed();
 			}
-			return Number(rnd.nextByte()) / 256 * maxValue;
+			return Number(rnd.nextByte()) * maxValue / 256 ;
 		}
 		
 		/**

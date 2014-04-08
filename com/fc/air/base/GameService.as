@@ -1,5 +1,7 @@
 package com.fc.air.base 
 {
+	import com.adobe.ane.gameCenter.GameCenterAchievementEvent;
+	import com.adobe.ane.gameCenter.GameCenterAchievementEvent;
 	import com.fc.air.comp.IAchievementBanner;
 	import com.fc.air.FPSCounter;
 	import com.fc.air.Util;	
@@ -25,11 +27,13 @@ package com.fc.air.base
 		private var gameCenterLogged:Boolean;
 		private var googlePlayLogged:Boolean;		
 		public var achievementBanner:IAchievementBanner;
+		private var queueAchievements:Array;
 		
 		// game center only
 		CONFIG::isIOS{
 			private var gcController:GameCenterController;					
 			private var validCats:Array;
+			private var callbackGC:CallbackObj;
 		}
 		
 		CONFIG::isAndroid{
@@ -49,11 +53,13 @@ package com.fc.air.base
 					gcController = new GameCenterController();
 					//Authenticate 
 					gcController.addEventListener(GameCenterAuthenticationEvent.PLAYER_NOT_AUTHENTICATED, gameCenterAuthenticatedFailed);				
-					gcController.addEventListener(GameCenterAuthenticationEvent.PLAYER_AUTHENTICATION_CHANGED, gameCenterAuthenticatedChanged);				
+					gcController.addEventListener(GameCenterAuthenticationEvent.PLAYER_AUTHENTICATION_CHANGED, gameCenterAuthenticatedChanged);									
 					//Leadership
 					gcController.addEventListener(GameCenterLeaderboardEvent.LEADERBOARD_VIEW_FINISHED, leaderBoardViewClose);
 					gcController.addEventListener(GameCenterLeaderboardEvent.LEADERBOARD_CATEGORIES_LOADED, leaderboardeCategoriesLoaded);				
 					gcController.addEventListener(GameCenterLeaderboardEvent.LEADERBOARD_CATEGORIES_FAILED, leaderboardeCategoriesFailed);	
+					gcController.addEventListener(GameCenterAchievementEvent.SUBMIT_ACHIEVEMENT_FAILED, onGameCenterAchievement);	
+					gcController.addEventListener(GameCenterAchievementEvent.SUBMIT_ACHIEVEMENT_SUCCEEDED, onGameCenterAchievement);															
 					if (!gcController.authenticated) {
 						gcController.addEventListener(GameCenterAuthenticationEvent.PLAYER_AUTHENTICATED, gameCenterAuthenticated);
 						gcController.authenticate();
@@ -61,13 +67,32 @@ package com.fc.air.base
 					}
 				}
 			}
-		}
+		}				
 			
 		CONFIG::isIOS{	
 			private function leaderBoardViewClose(e:GameCenterLeaderboardEvent):void 
 			{
 				var globalInput:GlobalInput = Factory.getInstance(GlobalInput);
 				globalInput.disable = false;
+			}
+			
+			private function onGameCenterAchievement(e:GameCenterAchievementEvent):void 
+			{
+				if (callbackGC)
+				{
+					if (e.type == GameCenterAchievementEvent.SUBMIT_ACHIEVEMENT_SUCCEEDED)
+					{				
+						callbackGC.execute();
+						Factory.toPool(callbackGC);
+						callbackGC = null;
+					}
+					else
+					{
+						Factory.toPool(callbackGC);
+						callbackGC = null;
+					}
+				}
+				
 			}
 			
 			private function gameCenterAuthenticatedChanged(e:GameCenterAuthenticationEvent):void 
@@ -250,39 +275,95 @@ package com.fc.air.base
 			}
 		}
 		
-		public function unlockAchievement(type:String):void
+		public function unlockAchievement(type:String, later:Boolean = false):void
 		{
+			if (!Util.internetAvailable)
+				return;
 			var ach:String;
 			var key:String = "achievement" + type;
 			var checkDone:Boolean = achiMap.hasOwnProperty(key);
 			//var checkDone:String = Util.getPrivateKey(key);
 			if (checkDone)
 				return;
-			
-			CONFIG::isIOS {
-				if(gameCenterLogged)
-				{					
-					gcController.submitAchievement(type, 100);
-					achiMap[key] = true;
+			if (!later)
+			{
+				CONFIG::isIOS {
+					if(gameCenterLogged)
+					{	
+						callbackGC = Factory.getObjectFromPool(CallbackObj);
+						callbackGC.f = onUnlockAchievementOK;
+						callbackGC.p = [key];
+						gcController.submitAchievement(type, 100);						
+					}
 				}
+				CONFIG::isAndroid {			
+					googlePlayTaskDone = onUnlockAchievementOK;
+					googlePlayParam = [key];
+					googlePlayTaskRetValueReq = [FCAndroidUtility.SIGN_IN_OK];
+					googlePlay.gpUnlockAchievement(type);			
+				}
+				
+				if(!achievementBanner.isShowing)
+					achievementBanner.setLabelAndShow(type);
+				else
+					achievementBanner.queue(type);											
 			}
-			CONFIG::isAndroid {			
-				googlePlayTaskDone = onGPUnlockAchievementOK;
-				googlePlayParam = [key];
-				googlePlayTaskRetValueReq = [FCAndroidUtility.SIGN_IN_OK];
-				googlePlay.gpUnlockAchievement(type);			
-			}
-			
-			if(!achievementBanner.isShowing)
-				achievementBanner.setLabelAndShow(type);
 			else
-				achievementBanner.queue(type);								
+			{
 			
+				if (!queueAchievements)
+					queueAchievements = [];
+				queueAchievements.push(type);
+				
+				/*CONFIG::isIOS {
+					if(gameCenterLogged)
+					{					
+						gcController.submitAchievement(type, 100);
+						achiMap[key] = true;
+					}
+				}
+				CONFIG::isAndroid {			
+					googlePlayTaskDone = onGPUnlockAchievementOK;
+					googlePlayParam = [key];
+					googlePlayTaskRetValueReq = [FCAndroidUtility.SIGN_IN_OK];
+					googlePlay.gpUnlockAchievement(type);			
+				}*/
+				
+				if(!achievementBanner.isShowing)
+					achievementBanner.setLabelAndShow(type);
+				else
+					achievementBanner.queue(type);												
+			}
 		}
 		
-		private function onGPUnlockAchievementOK(key:String):void 
+		private function onUnlockAchievementOK(key:String):void 
 		{
 			achiMap[key] = true;
+			flushAchievement();
+		}
+		
+		public function flushAchievement():void
+		{
+			if (queueAchievements.length > 0)
+			{
+				var key:String = "achievement" + queueAchievements[0];
+				CONFIG::isIOS {
+					if(gameCenterLogged)
+					{		
+						callbackGC = Factory.getObjectFromPool(CallbackObj);
+						callbackGC.f = onUnlockAchievementOK;
+						callbackGC.p = [key];
+						gcController.submitAchievement(queueAchievements[0], 100);						
+					}
+				}
+				CONFIG::isAndroid {			
+					googlePlayTaskDone = onUnlockAchievementOK;
+					googlePlayParam = [key];
+					googlePlayTaskRetValueReq = [FCAndroidUtility.SIGN_IN_OK];
+					googlePlay.gpUnlockAchievement(queueAchievements[0]);
+				}
+				queueAchievements.splice(0, 1);
+			}
 		}
 	}
 

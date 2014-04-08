@@ -131,13 +131,14 @@ package com.fc.air.base
 				label.removeFromParent();
 			}
 			label = txt;
+			txt.touchable = false;
 			label.batchable = true;
 			addChild(label);			
 		}
 		
 		public function addIcon(icon:DisplayObject):void
 		{			
-			icons.push(icon);
+			icons.push(icon);			
 			this.addChild(icon);				
 		}
 		
