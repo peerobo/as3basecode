@@ -44,6 +44,7 @@ package com.fc.air.base
 		private var onPurchaseComplete:Function;
 		private var onRestoreComplete:Function;
 		private var appSpecific:Object;
+		private var onConsumeDone:Function;
 		
 		
 		public function IAP() 
@@ -69,6 +70,14 @@ package com.fc.air.base
 				ret = true;
 			}
 			return ret;
+		}
+		
+		public function consumeProductID(productID:String, onConsumeDone:Function):void
+		{
+			this.onConsumeDone = onConsumeDone;
+			CONFIG::isAndroid {
+				androidIAP.consume(productID);
+			}
 		}
 		
 		/**
@@ -106,12 +115,35 @@ package com.fc.air.base
 					androidIAP.addEventListener(InAppPurchaseEvent.PURCHASE_ERROR, onAndroidPurchaseError);
 					androidIAP.addEventListener(InAppPurchaseEvent.RESTORE_SUCCESS, onAndroidRestoreSuccess);
 					androidIAP.addEventListener(InAppPurchaseEvent.RESTORE_ERROR, onAndroidRestoreError);
+					androidIAP.addEventListener(InAppPurchaseEvent.CONSUME_SUCCESS, onAndroidConsume);
+					androidIAP.addEventListener(InAppPurchaseEvent.CONSUME_ERROR, onAndroidConsume);
 					androidReadyToPurchase = false;
 				}
 			}
-		}					
+		}							
 		
-		CONFIG::isAndroid{
+		CONFIG::isAndroid {
+			private function onAndroidConsume(e:InAppPurchaseEvent):void 
+			{
+				if (e.type == InAppPurchaseEvent.CONSUME_ERROR)
+				{
+					if(onConsumeDone is Function)
+						onConsumeDone(e.data, false);
+				}
+				else
+				{
+					if(onConsumeDone is Function)
+						onConsumeDone(e.data, true);
+					var idx:int = androidBoughtList.indexOf(e.data);
+					if (idx > -1)
+					{
+						androidBoughtList.splice(idx, 1);
+						saveAnroidPurchaseStates();
+					}					
+				}			
+				onConsumeDone = null;
+			}
+			
 			private function onAndroidRestoreError(e:InAppPurchaseEvent):void 
 			{			 
 				FPSCounter.log("restore error:", e.data);
